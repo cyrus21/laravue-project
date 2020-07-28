@@ -1979,19 +1979,219 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   props: ['id'],
   data: function data() {
     return {
-      title: '',
-      messages: []
+      tempTitle: '',
+      messages: [],
+      txtmsg: [],
+      isEdit: false,
+      isDelete: false,
+      // video
+      image: null,
+      imagePreview: null,
+      video: null,
+      videoPreview: null
     };
   },
   mounted: function mounted() {
     this.getTemplate();
   },
   methods: {
+    // modals
+    createTextModal: function createTextModal(message) {
+      this.clearFields(message);
+      $('#textModal').modal('show');
+    },
+    editTextModal: function editTextModal(message) {
+      this.editMessage(message);
+
+      if (message.type === 'text') {
+        $('#textModal').modal('show');
+      } else if (message.type === 'video') {
+        $('#videoModal').modal('show');
+      } else {
+        $('#richModal').modal('show');
+      }
+    },
+    richModal: function richModal() {
+      $('#richModal').modal('show');
+    },
+    videoModal: function videoModal() {
+      $('#videoModal').modal('show');
+    },
+    // get template
     getTemplate: function getTemplate() {
       var _this = this;
 
@@ -2001,17 +2201,18 @@ __webpack_require__.r(__webpack_exports__);
       }).then(function (result) {
         console.log(result.data);
         var template = result.data.template;
-        _this.title = template.title;
+        _this.tempTitle = template.title;
         _this.messages = result.data.message;
       }, function (error) {
         console.error(error);
       });
     },
+    // update template
     updateTemplate: function updateTemplate() {
       var _this2 = this;
 
       axios__WEBPACK_IMPORTED_MODULE_0___default.a.put('/api/template/' + this.id, {
-        title: this.title
+        title: this.tempTitle
       }).then(function (res) {
         _this2.getTemplate();
 
@@ -2019,6 +2220,79 @@ __webpack_require__.r(__webpack_exports__);
       })["catch"](function (err) {
         console.log(err);
       });
+    },
+    // tool for clearing fields
+    clearFields: function clearFields(message) {
+      this.txtmsg = [];
+      this.isEdit = false;
+      this.isDelete = false;
+    },
+    // add text message
+    addMesssage: function addMesssage() {
+      var _this3 = this;
+
+      axios__WEBPACK_IMPORTED_MODULE_0___default.a.post('/api/message', {
+        title: this.txtmsg.title,
+        text: this.txtmsg.text,
+        type: 'text',
+        template_id: this.id
+      }).then(function (res) {
+        console.log(res);
+
+        _this3.getTemplate();
+
+        $('.modal').modal('hide');
+      })["catch"](function (err) {
+        console.log(err);
+      });
+    },
+    // setting data for update
+    editMessage: function editMessage(message) {
+      this.txtmsg.id = message.id;
+      this.txtmsg.title = message.title;
+      this.txtmsg.text = message.text;
+      this.txtmsg.type = message.type;
+      this.isEdit = true;
+      this.isDelete = true;
+    },
+    // update text message
+    updateMessage: function updateMessage(id) {
+      var _this4 = this;
+
+      axios__WEBPACK_IMPORTED_MODULE_0___default.a.put("/api/message/".concat(id), {
+        title: this.txtmsg.title,
+        text: this.txtmsg.text,
+        type: 'text',
+        template_id: this.id
+      }).then(function (res) {
+        _this4.getTemplate();
+
+        $('.modal').modal('hide');
+      })["catch"](function (err) {
+        console.log(err);
+      });
+    },
+    // delete text message
+    deleteMessage: function deleteMessage(id) {
+      var _this5 = this;
+
+      axios__WEBPACK_IMPORTED_MODULE_0___default.a["delete"]("/api/message/".concat(id)).then(function (res) {
+        _this5.getTemplate();
+
+        $('.modal').modal('hide');
+        console.log(res);
+      })["catch"](function (err) {
+        console.log(err);
+      });
+    },
+    // video message
+    imageSelected: function imageSelected(e) {
+      var file = e.target.files[0];
+      this.imagePreview = URL.createObjectURL(file);
+    },
+    videoSelected: function videoSelected(e) {
+      var file = e.target.files[0];
+      this.videoPreview = URL.createObjectURL(file);
     }
   }
 });
@@ -2036,7 +2310,6 @@ __webpack_require__.r(__webpack_exports__);
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
 /* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(axios__WEBPACK_IMPORTED_MODULE_0__);
-//
 //
 //
 //
@@ -2205,36 +2478,28 @@ __webpack_require__.r(__webpack_exports__);
       msgId: ''
     };
   },
-  mounted: function mounted() {
-    this.getTemplate();
-  },
+  mounted: function mounted() {},
   methods: {
     addMesssage: function addMesssage() {
-      var _this = this;
-
       axios__WEBPACK_IMPORTED_MODULE_0___default.a.post('/api/message', {
         title: this.title,
         text: this.text,
         type: 'text',
-        template_id: 6
+        template_id: this.id
       }).then(function (res) {
         console.log(res);
-
-        _this.getTemplate(); // location.href = '/home';
-
-
         $('.modal').modal('hide');
       })["catch"](function (err) {
         console.log(err);
       });
     },
     updateMessage: function updateMessage() {
-      var _this2 = this;
+      var _this = this;
 
       axios__WEBPACK_IMPORTED_MODULE_0___default.a.put('/api/template/' + this.id, {
         title: this.title
       }).then(function (res) {
-        _this2.getTemplate();
+        _this.getTemplate();
 
         location.href = '/home';
       })["catch"](function (err) {
@@ -38003,19 +38268,19 @@ var render = function() {
                     {
                       name: "model",
                       rawName: "v-model",
-                      value: _vm.title,
-                      expression: "title"
+                      value: _vm.tempTitle,
+                      expression: "tempTitle"
                     }
                   ],
                   staticClass: "form-control",
                   attrs: { placeholder: "Title" },
-                  domProps: { value: _vm.title },
+                  domProps: { value: _vm.tempTitle },
                   on: {
                     input: function($event) {
                       if ($event.target.composing) {
                         return
                       }
-                      _vm.title = $event.target.value
+                      _vm.tempTitle = $event.target.value
                     }
                   }
                 })
@@ -38086,7 +38351,12 @@ var render = function() {
           {
             key: message.id,
             staticClass: "row justify-content-center py-3",
-            attrs: { title: message.title }
+            attrs: { title: message.title },
+            on: {
+              click: function($event) {
+                return _vm.editTextModal(message)
+              }
+            }
           },
           [
             _c("div", { staticClass: "col-md-4" }, [
@@ -38250,12 +38520,729 @@ var render = function() {
             ]
           )
         ])
-      ])
+      ]),
+      _vm._v(" "),
+      _c(
+        "div",
+        {
+          staticClass: "modal fade bd-example-modal-lg",
+          attrs: {
+            id: "messageTemplateModal",
+            tabindex: "-1",
+            role: "dialog",
+            "aria-labelledby": "exampleModalLabel",
+            "aria-hidden": "true"
+          }
+        },
+        [
+          _c(
+            "div",
+            {
+              staticClass: "modal-dialog modal-lg",
+              attrs: { role: "document" }
+            },
+            [
+              _c("div", { staticClass: "modal-content" }, [
+                _vm._m(0),
+                _vm._v(" "),
+                _c("div", { staticClass: "modal-body py-5 px-4" }, [
+                  _vm._m(1),
+                  _vm._v(" "),
+                  _c("div", { staticClass: "row" }, [
+                    _c("div", { staticClass: "col-md-4" }, [
+                      _c(
+                        "div",
+                        {
+                          staticClass:
+                            "d-flex flex-column justify-content-center border border-primary rounded-lg p-5 mb-2",
+                          on: { click: _vm.richModal }
+                        },
+                        [
+                          _c(
+                            "svg",
+                            {
+                              staticClass: "bi bi-card-image mx-auto mb-3",
+                              attrs: {
+                                width: "48",
+                                height: "48",
+                                viewBox: "0 0 16 16",
+                                fill: "currentColor",
+                                xmlns: "http://www.w3.org/2000/svg"
+                              }
+                            },
+                            [
+                              _c("path", {
+                                attrs: {
+                                  "fill-rule": "evenodd",
+                                  d:
+                                    "M14.5 3h-13a.5.5 0 0 0-.5.5v9a.5.5 0 0 0 .5.5h13a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-13z"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("path", {
+                                attrs: {
+                                  d:
+                                    "M10.648 7.646a.5.5 0 0 1 .577-.093L15.002 9.5V13h-14v-1l2.646-2.354a.5.5 0 0 1 .63-.062l2.66 1.773 3.71-3.71z"
+                                }
+                              }),
+                              _vm._v(" "),
+                              _c("path", {
+                                attrs: {
+                                  "fill-rule": "evenodd",
+                                  d:
+                                    "M4.502 7a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"
+                                }
+                              })
+                            ]
+                          ),
+                          _vm._v(" "),
+                          _c("h5", { staticClass: "mx-auto" }, [_vm._v("Rich")])
+                        ]
+                      ),
+                      _vm._v(" "),
+                      _c("p", [
+                        _vm._v(
+                          "\n                                 Use rich messages to send out interactive content \n                                 featuring images you've selected.\n                             "
+                        )
+                      ])
+                    ]),
+                    _vm._v(" "),
+                    _c("div", { staticClass: "col-md-4" }, [
+                      _c(
+                        "div",
+                        {
+                          staticClass:
+                            "d-flex flex-column justify-content-center border border-primary rounded-lg p-5 mb-2",
+                          on: { click: _vm.createTextModal }
+                        },
+                        [
+                          _c(
+                            "svg",
+                            {
+                              staticClass: "bi bi-chat mx-auto mb-3",
+                              attrs: {
+                                width: "48",
+                                height: "48",
+                                viewBox: "0 0 16 16",
+                                fill: "currentColor",
+                                xmlns: "http://www.w3.org/2000/svg"
+                              }
+                            },
+                            [
+                              _c("path", {
+                                attrs: {
+                                  "fill-rule": "evenodd",
+                                  d:
+                                    "M2.678 11.894a1 1 0 0 1 .287.801 10.97 10.97 0 0 1-.398 2c1.395-.323 2.247-.697 2.634-.893a1 1 0 0 1 .71-.074A8.06 8.06 0 0 0 8 14c3.996 0 7-2.807 7-6 0-3.192-3.004-6-7-6S1 4.808 1 8c0 1.468.617 2.83 1.678 3.894zm-.493 3.905a21.682 21.682 0 0 1-.713.129c-.2.032-.352-.176-.273-.362a9.68 9.68 0 0 0 .244-.637l.003-.01c.248-.72.45-1.548.524-2.319C.743 11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7-3.582 7-8 7a9.06 9.06 0 0 1-2.347-.306c-.52.263-1.639.742-3.468 1.105z"
+                                }
+                              })
+                            ]
+                          ),
+                          _vm._v(" "),
+                          _c("h5", { staticClass: "mx-auto" }, [_vm._v("Text")])
+                        ]
+                      ),
+                      _vm._v(" "),
+                      _c("p", [
+                        _vm._v(
+                          "\n                                 Use text messages to send a simple text based message.\n                             "
+                        )
+                      ])
+                    ]),
+                    _vm._v(" "),
+                    _c("div", { staticClass: "col-md-4" }, [
+                      _c(
+                        "div",
+                        {
+                          staticClass:
+                            "d-flex flex-column justify-content-center border border-primary rounded-lg p-5 mb-2",
+                          on: { click: _vm.videoModal }
+                        },
+                        [
+                          _c(
+                            "svg",
+                            {
+                              staticClass: "bi bi-film mx-auto mb-3",
+                              attrs: {
+                                width: "48",
+                                height: "48",
+                                viewBox: "0 0 16 16",
+                                fill: "currentColor",
+                                xmlns: "http://www.w3.org/2000/svg"
+                              }
+                            },
+                            [
+                              _c("path", {
+                                attrs: {
+                                  "fill-rule": "evenodd",
+                                  d:
+                                    "M0 1a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H1a1 1 0 0 1-1-1V1zm4 0h8v6H4V1zm8 8H4v6h8V9zM1 1h2v2H1V1zm2 3H1v2h2V4zM1 7h2v2H1V7zm2 3H1v2h2v-2zm-2 3h2v2H1v-2zM15 1h-2v2h2V1zm-2 3h2v2h-2V4zm2 3h-2v2h2V7zm-2 3h2v2h-2v-2zm2 3h-2v2h2v-2z"
+                                }
+                              })
+                            ]
+                          ),
+                          _vm._v(" "),
+                          _c("h5", { staticClass: "mx-auto" }, [
+                            _vm._v("Video")
+                          ])
+                        ]
+                      ),
+                      _vm._v(" "),
+                      _c("p", [
+                        _vm._v(
+                          "\n                                 Use multimedia messages to send a video.\n                             "
+                        )
+                      ])
+                    ])
+                  ])
+                ])
+              ])
+            ]
+          )
+        ]
+      ),
+      _vm._v(" "),
+      _c(
+        "div",
+        {
+          staticClass: "modal fade bd-example-modal-lg",
+          attrs: {
+            id: "textModal",
+            tabindex: "-1",
+            role: "dialog",
+            "aria-labelledby": "exampleModalLabel",
+            "aria-hidden": "true"
+          }
+        },
+        [
+          _c(
+            "div",
+            {
+              staticClass: "modal-dialog modal-lg",
+              attrs: { role: "document" }
+            },
+            [
+              _c("div", { staticClass: "modal-content" }, [
+                _c(
+                  "div",
+                  {
+                    staticClass:
+                      "modal-header d-flex justify-content-between align-items-center py-4"
+                  },
+                  [
+                    _c(
+                      "div",
+                      {
+                        staticClass: "lead",
+                        attrs: {
+                          "data-dismiss": "modal",
+                          "aria-label": "Close"
+                        }
+                      },
+                      [
+                        _c(
+                          "svg",
+                          {
+                            staticClass: "bi bi-arrow-left-short",
+                            attrs: {
+                              width: "1em",
+                              height: "1em",
+                              viewBox: "0 0 16 16",
+                              fill: "currentColor",
+                              xmlns: "http://www.w3.org/2000/svg"
+                            }
+                          },
+                          [
+                            _c("path", {
+                              attrs: {
+                                "fill-rule": "evenodd",
+                                d:
+                                  "M7.854 4.646a.5.5 0 0 1 0 .708L5.207 8l2.647 2.646a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 0 1 .708 0z"
+                              }
+                            }),
+                            _vm._v(" "),
+                            _c("path", {
+                              attrs: {
+                                "fill-rule": "evenodd",
+                                d:
+                                  "M4.5 8a.5.5 0 0 1 .5-.5h6.5a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5z"
+                              }
+                            })
+                          ]
+                        ),
+                        _vm._v(
+                          "\n                         Choose different message type\n                     "
+                        )
+                      ]
+                    ),
+                    _vm._v(" "),
+                    _c("div", [
+                      this.isEdit === false
+                        ? _c(
+                            "button",
+                            {
+                              staticClass: "btn btn-primary",
+                              on: { click: _vm.addMesssage }
+                            },
+                            [_vm._v("Add")]
+                          )
+                        : _vm._e(),
+                      _vm._v(" "),
+                      this.isDelete === true
+                        ? _c(
+                            "button",
+                            {
+                              staticClass: "btn btn-primary",
+                              on: {
+                                click: function($event) {
+                                  return _vm.deleteMessage(_vm.txtmsg.id)
+                                }
+                              }
+                            },
+                            [_vm._v("Delete")]
+                          )
+                        : _vm._e(),
+                      _vm._v(" "),
+                      this.isEdit === true
+                        ? _c(
+                            "button",
+                            {
+                              staticClass: "btn btn-primary",
+                              on: {
+                                click: function($event) {
+                                  return _vm.updateMessage(_vm.txtmsg.id)
+                                }
+                              }
+                            },
+                            [_vm._v("Update")]
+                          )
+                        : _vm._e()
+                    ])
+                  ]
+                ),
+                _vm._v(" "),
+                _c("div", { staticClass: "modal-body px-4" }, [
+                  _vm._m(2),
+                  _vm._v(" "),
+                  _c("hr", { staticClass: "mb-4" }),
+                  _vm._v(" "),
+                  _c("form", [
+                    _c("div", { staticClass: "form-group" }, [
+                      _c("label", [_vm._v("Title")]),
+                      _vm._v(" "),
+                      _c("input", {
+                        directives: [
+                          {
+                            name: "model",
+                            rawName: "v-model",
+                            value: _vm.txtmsg.title,
+                            expression: "txtmsg.title"
+                          }
+                        ],
+                        staticClass: "form-control",
+                        attrs: { type: "text" },
+                        domProps: { value: _vm.txtmsg.title },
+                        on: {
+                          input: function($event) {
+                            if ($event.target.composing) {
+                              return
+                            }
+                            _vm.$set(_vm.txtmsg, "title", $event.target.value)
+                          }
+                        }
+                      }),
+                      _vm._v(" "),
+                      _c("small", { staticClass: "form-text text-muted" }, [
+                        _vm._v(
+                          "The message title is shown in push notifications and in the user's chat list."
+                        )
+                      ])
+                    ]),
+                    _vm._v(" "),
+                    _c("div", { staticClass: "form-group" }, [
+                      _c("label", [_vm._v("Text")]),
+                      _vm._v(" "),
+                      _c("textarea", {
+                        directives: [
+                          {
+                            name: "model",
+                            rawName: "v-model",
+                            value: _vm.txtmsg.text,
+                            expression: "txtmsg.text"
+                          }
+                        ],
+                        staticClass: "form-control",
+                        attrs: { rows: "5" },
+                        domProps: { value: _vm.txtmsg.text },
+                        on: {
+                          input: function($event) {
+                            if ($event.target.composing) {
+                              return
+                            }
+                            _vm.$set(_vm.txtmsg, "text", $event.target.value)
+                          }
+                        }
+                      })
+                    ])
+                  ])
+                ])
+              ])
+            ]
+          )
+        ]
+      ),
+      _vm._v(" "),
+      _c(
+        "div",
+        {
+          staticClass: "modal fade bd-example-modal-lg",
+          attrs: {
+            id: "videoModal",
+            tabindex: "-1",
+            role: "dialog",
+            "aria-labelledby": "exampleModalLabel",
+            "aria-hidden": "true"
+          }
+        },
+        [
+          _c(
+            "div",
+            {
+              staticClass: "modal-dialog modal-lg",
+              attrs: { role: "document" }
+            },
+            [
+              _c("div", { staticClass: "modal-content" }, [
+                _c(
+                  "div",
+                  {
+                    staticClass:
+                      "modal-header d-flex justify-content-between align-items-center py-4"
+                  },
+                  [
+                    _c(
+                      "div",
+                      {
+                        staticClass: "lead",
+                        attrs: {
+                          "data-dismiss": "modal",
+                          "aria-label": "Close"
+                        }
+                      },
+                      [
+                        _c(
+                          "svg",
+                          {
+                            staticClass: "bi bi-arrow-left-short",
+                            attrs: {
+                              width: "1em",
+                              height: "1em",
+                              viewBox: "0 0 16 16",
+                              fill: "currentColor",
+                              xmlns: "http://www.w3.org/2000/svg"
+                            }
+                          },
+                          [
+                            _c("path", {
+                              attrs: {
+                                "fill-rule": "evenodd",
+                                d:
+                                  "M7.854 4.646a.5.5 0 0 1 0 .708L5.207 8l2.647 2.646a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 0 1 .708 0z"
+                              }
+                            }),
+                            _vm._v(" "),
+                            _c("path", {
+                              attrs: {
+                                "fill-rule": "evenodd",
+                                d:
+                                  "M4.5 8a.5.5 0 0 1 .5-.5h6.5a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5z"
+                              }
+                            })
+                          ]
+                        ),
+                        _vm._v(
+                          "\n                         Choose different message type\n                     "
+                        )
+                      ]
+                    ),
+                    _vm._v(" "),
+                    _c("div", [
+                      this.isEdit === false
+                        ? _c(
+                            "button",
+                            {
+                              staticClass: "btn btn-primary",
+                              on: { click: _vm.addMesssage }
+                            },
+                            [_vm._v("Add")]
+                          )
+                        : this.isEdit === true
+                        ? _c(
+                            "button",
+                            {
+                              staticClass: "btn btn-primary",
+                              on: {
+                                click: function($event) {
+                                  return _vm.deleteMessage(_vm.txtmsg.id)
+                                }
+                              }
+                            },
+                            [_vm._v("Delete")]
+                          )
+                        : _vm._e(),
+                      _vm._v(" "),
+                      this.isDelete === true
+                        ? _c(
+                            "button",
+                            {
+                              staticClass: "btn btn-primary",
+                              on: {
+                                click: function($event) {
+                                  return _vm.updateMessage(_vm.txtmsg.id)
+                                }
+                              }
+                            },
+                            [_vm._v("Update")]
+                          )
+                        : _vm._e()
+                    ])
+                  ]
+                ),
+                _vm._v(" "),
+                _c("div", { staticClass: "modal-body px-4" }, [
+                  _vm._m(3),
+                  _vm._v(" "),
+                  _c("hr", { staticClass: "mb-4" }),
+                  _vm._v(" "),
+                  _c("form", [
+                    _c("div", { staticClass: "form-group" }, [
+                      _c("label", [_vm._v("Title")]),
+                      _vm._v(" "),
+                      _c("input", {
+                        directives: [
+                          {
+                            name: "model",
+                            rawName: "v-model",
+                            value: _vm.txtmsg.title,
+                            expression: "txtmsg.title"
+                          }
+                        ],
+                        staticClass: "form-control",
+                        attrs: { type: "text" },
+                        domProps: { value: _vm.txtmsg.title },
+                        on: {
+                          input: function($event) {
+                            if ($event.target.composing) {
+                              return
+                            }
+                            _vm.$set(_vm.txtmsg, "title", $event.target.value)
+                          }
+                        }
+                      }),
+                      _vm._v(" "),
+                      _c("small", { staticClass: "form-text text-muted" }, [
+                        _vm._v(
+                          " The message title is shown in push notifications and in the user's chat list."
+                        )
+                      ])
+                    ]),
+                    _vm._v(" "),
+                    _c("div", [
+                      _c("p", [_vm._v("Message Settings")]),
+                      _vm._v(" "),
+                      _c("div", { staticClass: "row" }, [
+                        _c("div", { staticClass: "col-md-6 mb-4" }, [
+                          _c("p", [_vm._v("Video")]),
+                          _vm._v(" "),
+                          _c(
+                            "video",
+                            {
+                              staticClass: "w-100",
+                              attrs: { height: "180", controls: "" }
+                            },
+                            [
+                              _c("source", {
+                                attrs: {
+                                  src: _vm.videoPreview,
+                                  type: "video/mp4"
+                                }
+                              })
+                            ]
+                          ),
+                          _vm._v(" "),
+                          _c("small", [
+                            _vm._v(
+                              "\n                                         A very wide or tall video may be cropped when played in some environments.\n                                     "
+                            )
+                          ]),
+                          _vm._v(" "),
+                          _c("div", { staticClass: "my-3" }, [
+                            _c(
+                              "div",
+                              {
+                                staticClass:
+                                  "btn rounded-sm bg-light border-dark",
+                                on: {
+                                  click: function($event) {
+                                    return _vm.$refs.vidFile.click()
+                                  }
+                                }
+                              },
+                              [_vm._v("Upload Video")]
+                            ),
+                            _vm._v(" "),
+                            _c("input", {
+                              ref: "vidFile",
+                              staticClass: "d-none",
+                              attrs: { type: "file", accept: "video/mp4" },
+                              on: { change: _vm.videoSelected }
+                            })
+                          ]),
+                          _vm._v(" "),
+                          _c("small", { staticClass: "d-block" }, [
+                            _vm._v("Maximum duration: 1 minute")
+                          ]),
+                          _vm._v(" "),
+                          _c("small", { staticClass: "d-block" }, [
+                            _vm._v("Maximum file Size: 10 MB")
+                          ])
+                        ]),
+                        _vm._v(" "),
+                        _c("div", { staticClass: "col-md-6 mb-4" }, [
+                          _c("p", [_vm._v("Video Image Preview")]),
+                          _vm._v(" "),
+                          _c(
+                            "div",
+                            {
+                              staticClass: "w-100 bg-light mb-1",
+                              staticStyle: {
+                                height: "180px",
+                                border: "2px dashed #e2e8f0"
+                              }
+                            },
+                            [
+                              _c("img", {
+                                staticClass: "w-100",
+                                staticStyle: { height: "176px" },
+                                attrs: { src: _vm.imagePreview }
+                              })
+                            ]
+                          ),
+                          _vm._v(" "),
+                          _c("small", [
+                            _vm._v(
+                              "\n                                         The image must equal or below 1MB of file size with a resolution of at least 240x240\n                                     "
+                            )
+                          ]),
+                          _vm._v(" "),
+                          _c("div", { staticClass: "my-3" }, [
+                            _c(
+                              "div",
+                              {
+                                staticClass:
+                                  "btn rounded-sm bg-light border-dark",
+                                on: {
+                                  click: function($event) {
+                                    return _vm.$refs.imgFile.click()
+                                  }
+                                }
+                              },
+                              [_vm._v("Upload Image")]
+                            ),
+                            _vm._v(" "),
+                            _c("input", {
+                              ref: "imgFile",
+                              staticClass: "d-none",
+                              attrs: {
+                                type: "file",
+                                accept: "image/png, image/jpeg"
+                              },
+                              on: { change: _vm.imageSelected }
+                            })
+                          ]),
+                          _vm._v(" "),
+                          _c("small", { staticClass: "d-block" }, [
+                            _vm._v("Maximum resolution: 240x240")
+                          ]),
+                          _vm._v(" "),
+                          _c("small", { staticClass: "d-block" }, [
+                            _vm._v("Maximum file Size: 1 MB")
+                          ])
+                        ])
+                      ])
+                    ])
+                  ])
+                ])
+              ])
+            ]
+          )
+        ]
+      )
     ],
     2
   )
 }
-var staticRenderFns = []
+var staticRenderFns = [
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "modal-header align-items-center py-4" }, [
+      _c(
+        "h5",
+        { staticClass: "modal-title", attrs: { id: "exampleModalLabel" } },
+        [_vm._v("Message Templates")]
+      ),
+      _vm._v(" "),
+      _c(
+        "button",
+        {
+          staticClass: "close",
+          attrs: {
+            type: "button",
+            "data-dismiss": "modal",
+            "aria-label": "Close"
+          }
+        },
+        [_c("span", { attrs: { "aria-hidden": "true" } }, [_vm._v("×")])]
+      )
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", [
+      _c("h2", { staticClass: "mb-4" }, [
+        _vm._v("Select a message template type")
+      ])
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "py-2" }, [
+      _c("h2", { staticClass: "m-0" }, [_vm._v("Text message")]),
+      _vm._v(" "),
+      _c("p", { staticClass: "m-0" }, [
+        _vm._v("Use text messages to send a simple text based message.")
+      ])
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "py-2" }, [
+      _c("h2", { staticClass: "m-0" }, [_vm._v("Video Message")]),
+      _vm._v(" "),
+      _c("p", { staticClass: "m-0" }, [
+        _vm._v("Use this template to send a video.")
+      ])
+    ])
+  }
+]
 render._withStripped = true
 
 
@@ -38277,116 +39264,107 @@ var render = function() {
   var _vm = this
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
-  return _c(
-    "div",
-    { staticClass: "container" },
-    [
-      _c("div", { staticClass: "row justify-content-center" }, [
-        _c("div", { staticClass: "col-md-12" }, [
-          _c(
-            "div",
-            {
-              staticClass: "d-flex justify-content-between align-items-center"
-            },
-            [
-              _c("div", [
-                _c("h1", [
-                  _vm._v(
-                    "LINE Message Templates (" +
-                      _vm._s(_vm.templates.length) +
-                      ")"
-                  )
-                ])
-              ]),
-              _vm._v(" "),
-              _c("div", [
-                _c(
-                  "button",
-                  {
-                    staticClass: "btn btn-primary mx-sm-1 mx-xl-0",
-                    on: {
-                      click: function($event) {
-                        return _vm.addNewTemplate()
-                      }
-                    }
-                  },
-                  [_vm._v("Create Template")]
+  return _c("div", { staticClass: "container" }, [
+    _c("div", { staticClass: "row justify-content-center" }, [
+      _c("div", { staticClass: "col-md-12" }, [
+        _c(
+          "div",
+          { staticClass: "d-flex justify-content-between align-items-center" },
+          [
+            _c("div", [
+              _c("h1", [
+                _vm._v(
+                  "LINE Message Templates (" +
+                    _vm._s(_vm.templates.length) +
+                    ")"
                 )
               ])
-            ]
-          ),
-          _vm._v(" "),
-          _c("hr", { staticClass: "mt-4" }),
-          _vm._v(" "),
-          _c("table", { staticClass: "table table-hover" }, [
-            _vm._m(0),
+            ]),
             _vm._v(" "),
-            _c(
-              "tbody",
-              _vm._l(_vm.templates, function(template) {
-                return _c(
-                  "tr",
-                  { key: template.id, attrs: { title: template.title } },
-                  [
-                    _c("th", { attrs: { scope: "row" } }, [
-                      _vm._v(_vm._s(template.id))
-                    ]),
+            _c("div", [
+              _c(
+                "button",
+                {
+                  staticClass: "btn btn-primary mx-sm-1 mx-xl-0",
+                  on: {
+                    click: function($event) {
+                      return _vm.addNewTemplate()
+                    }
+                  }
+                },
+                [_vm._v("Create Template")]
+              )
+            ])
+          ]
+        ),
+        _vm._v(" "),
+        _c("hr", { staticClass: "mt-4" }),
+        _vm._v(" "),
+        _c("table", { staticClass: "table table-hover" }, [
+          _vm._m(0),
+          _vm._v(" "),
+          _c(
+            "tbody",
+            _vm._l(_vm.templates, function(template) {
+              return _c(
+                "tr",
+                { key: template.id, attrs: { title: template.title } },
+                [
+                  _c("th", { attrs: { scope: "row" } }, [
+                    _vm._v(_vm._s(template.id))
+                  ]),
+                  _vm._v(" "),
+                  _c("td", [_vm._v(_vm._s(template.title))]),
+                  _vm._v(" "),
+                  _c("td", [_vm._v(_vm._s(template.updated_at))]),
+                  _vm._v(" "),
+                  _c("td", [_vm._v(_vm._s(template.created_at))]),
+                  _vm._v(" "),
+                  _c("td", { staticClass: "d-sm-flex d-xl-block" }, [
+                    _c(
+                      "a",
+                      {
+                        staticClass: "btn btn-primary mx-sm-1 mx-xl-0",
+                        attrs: { href: "/template/" + template.id + "/edit" }
+                      },
+                      [_vm._v("Edit")]
+                    ),
                     _vm._v(" "),
-                    _c("td", [_vm._v(_vm._s(template.title))]),
-                    _vm._v(" "),
-                    _c("td", [_vm._v(_vm._s(template.updated_at))]),
-                    _vm._v(" "),
-                    _c("td", [_vm._v(_vm._s(template.created_at))]),
-                    _vm._v(" "),
-                    _c("td", { staticClass: "d-sm-flex d-xl-block" }, [
-                      _c(
-                        "a",
-                        {
-                          staticClass: "btn btn-primary mx-sm-1 mx-xl-0",
-                          attrs: { href: "/template/" + template.id + "/edit" }
-                        },
-                        [_vm._v("Edit")]
-                      ),
-                      _vm._v(" "),
-                      _c(
-                        "button",
-                        {
-                          staticClass: "btn btn-primary mx-sm-1 mx-xl-0",
-                          on: {
-                            click: function($event) {
-                              return _vm.copyTemplate(template.id)
-                            }
+                    _c(
+                      "button",
+                      {
+                        staticClass: "btn btn-primary mx-sm-1 mx-xl-0",
+                        on: {
+                          click: function($event) {
+                            return _vm.copyTemplate(template.id)
                           }
-                        },
-                        [_vm._v("Duplicate")]
-                      ),
-                      _vm._v(" "),
-                      _c(
-                        "button",
-                        {
-                          staticClass: "btn btn-primary mx-sm-1 mx-xl-0",
-                          on: {
-                            click: function($event) {
-                              return _vm.deleteTemplate(template.id)
-                            }
+                        }
+                      },
+                      [_vm._v("Duplicate")]
+                    ),
+                    _vm._v(" "),
+                    _c(
+                      "button",
+                      {
+                        staticClass: "btn btn-primary mx-sm-1 mx-xl-0",
+                        on: {
+                          click: function($event) {
+                            return _vm.deleteTemplate(template.id)
                           }
-                        },
-                        [_vm._v("Remove")]
-                      )
-                    ])
-                  ]
-                )
-              }),
-              0
-            )
-          ])
+                        }
+                      },
+                      [_vm._v("Remove")]
+                    )
+                  ])
+                ]
+              )
+            }),
+            0
+          )
         ])
-      ]),
-      _vm._v(" "),
-      _c("text-modal")
-    ],
-    1
-  )
+      ])
+    ])
+  ])
 }
 var staticRenderFns = [
   function() {
@@ -38893,9 +39871,7 @@ var render = function() {
                       ]
                     ),
                     _vm._v(
-                      "\n                    Choose different message type " +
-                        _vm._s(_vm.id) +
-                        "\n                "
+                      "\n                    Choose different message type\n                "
                     )
                   ]
                 ),
@@ -51535,14 +52511,15 @@ window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 /*!***************************************************!*\
   !*** ./resources/js/components/FormComponent.vue ***!
   \***************************************************/
-/*! exports provided: default */
+/*! no static exports found */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _FormComponent_vue_vue_type_template_id_b1dd1884___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./FormComponent.vue?vue&type=template&id=b1dd1884& */ "./resources/js/components/FormComponent.vue?vue&type=template&id=b1dd1884&");
 /* harmony import */ var _FormComponent_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./FormComponent.vue?vue&type=script&lang=js& */ "./resources/js/components/FormComponent.vue?vue&type=script&lang=js&");
-/* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
+/* harmony reexport (unknown) */ for(var __WEBPACK_IMPORT_KEY__ in _FormComponent_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__) if(__WEBPACK_IMPORT_KEY__ !== 'default') (function(key) { __webpack_require__.d(__webpack_exports__, key, function() { return _FormComponent_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__[key]; }) }(__WEBPACK_IMPORT_KEY__));
+/* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
 
 
 
@@ -51572,7 +52549,7 @@ component.options.__file = "resources/js/components/FormComponent.vue"
 /*!****************************************************************************!*\
   !*** ./resources/js/components/FormComponent.vue?vue&type=script&lang=js& ***!
   \****************************************************************************/
-/*! exports provided: default */
+/*! no static exports found */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";

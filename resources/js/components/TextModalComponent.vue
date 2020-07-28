@@ -8,7 +8,7 @@
                             <path fill-rule="evenodd" d="M7.854 4.646a.5.5 0 0 1 0 .708L5.207 8l2.647 2.646a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 0 1 .708 0z"/>
                             <path fill-rule="evenodd" d="M4.5 8a.5.5 0 0 1 .5-.5h6.5a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5z"/>
                         </svg>
-                        Choose different message type {{id}}
+                        Choose different message type
                     </div>
                     <div>
                         <button v-on:click="addMesssage()" class="btn btn-primary">Add</button>
@@ -50,18 +50,14 @@
             }
         },
         mounted () {
-            this.getTemplate()
         },
         methods: {
             addMesssage() {
                 axios.post('/api/message',
-                    { title: this.title, text: this.text, type: 'text', template_id: 6}
+                    { title: this.title, text: this.text, type: 'text', template_id: this.id}
                 ).then((res) => {
                     console.log(res);
-                    this.getTemplate()
-                    // location.href = '/home';
                     $('.modal').modal('hide');
-
                 }).catch((err) => {
                     console.log(err)
                 })

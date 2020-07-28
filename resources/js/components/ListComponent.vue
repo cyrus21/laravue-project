@@ -37,7 +37,6 @@
                 </table>
             </div>
         </div>
-        <text-modal></text-modal>
     </div>
 </template>
 
