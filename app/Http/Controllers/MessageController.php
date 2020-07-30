@@ -16,14 +16,105 @@ class MessageController extends Controller
     }
 
     public function store(Request $request) {
-        return Message::create($request->all());
+        // for text message
+        if ($request->type === 'text') {
+            // validate text message
+            $request->validate([
+                'title' => 'required',
+                'text' => 'required',
+                'template_id'=> 'required',
+                'type' => 'required'
+            ]);
+
+            return Message::create($request->all());
+        }
+        // for video message
+        if ($request->type === 'video') {
+            // validate video message
+            $request->validate([
+                'title' => 'required',
+                'template_id'=> 'required',
+                'type' => 'required',
+                'preview_image_url' => 'required|image|mimes:jpeg,png,jpg|max:1024',
+                'video_url' => 'required | max:10240'
+            ]);
+
+            $videoMsg = $request->all();
+            
+            if ($request->hasFile('video_url')) {
+                $destination_path = 'public/files';
+                $video = $request->file('video_url');
+                $video_name = $video->getClientOriginalName();
+                $path = $request->file('video_url')->storeAs($destination_path, $video_name);
+
+                $videoMsg['video_url'] = $video_name;
+            }
+
+            if ($request->hasFile('preview_image_url')) {
+                $destination_path = 'public/files';
+                $image = $request->file('preview_image_url');
+                $image_name = $image->getClientOriginalName();
+                $path = $request->file('preview_image_url')->storeAs($destination_path, $image_name);
+    
+                $videoMsg['preview_image_url'] = $image_name;
+            }
+
+            return Message::create($videoMsg);
+        }
     }
 
     public function update(Request $request, $id) {
-        $message = Message::findOrFail($id);
-        $message->update($request->all());
+        // dd($request);
+        if ($request->type === 'text') {
+            // validate text message
+            $request->validate([
+                'title' => 'required',
+                'text' => 'required',
+                'template_id'=> 'required',
+                'type' => 'required'
+            ]);
+            
+            $message = Message::findOrFail($id);
+            $message->update($request->all());
+
+            return $message;
+        } 
+
+        if ($request->type === 'video') {
+            // validate video message
+            $request->validate([
+                'title' => 'required',
+                'template_id'=> 'required',
+                'type' => 'required',
+                'preview_image_url' => 'max:1024',
+                'video_url' => 'required | max:10240'
+            ]);
+
+            $videoMsg = $request->all();
+            
+            if ($request->hasFile('video_url')) {
+                $destination_path = 'public/files';
+                $video = $request->file('video_url');
+                $video_name = $video->getClientOriginalName();
+                $path = $request->file('video_url')->storeAs($destination_path, $video_name);
+
+                $videoMsg['video_url'] = $video_name;
+            }
+
+            if ($request->hasFile('preview_image_url')) {
+                $destination_path = 'public/files';
+                $image = $request->file('preview_image_url');
+                $image_name = $image->getClientOriginalName();
+                $path = $request->file('preview_image_url')->storeAs($destination_path, $image_name);
     
-        return $message;
+                $videoMsg['preview_image_url'] = $image_name;
+            }
+
+            $message = Message::findOrFail($id);
+            $message->update($videoMsg);
+
+            return $message;
+        }
     }
 
     public function delete(Request $request, $id) {
@@ -31,5 +122,13 @@ class MessageController extends Controller
         $message->delete();
 
         return 204;
+    }
+    
+    public function copy(Request $request, $id) {
+        $message = Message::findOrFail($id);
+        $newMessage = $message->replicate();
+        $newMessage->save();
+    
+        return $message;
     }
 }

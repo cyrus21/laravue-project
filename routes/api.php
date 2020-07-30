@@ -29,5 +29,5 @@ Route::get('message', 'MessageController@index');
 Route::get('message/{id}', 'MessageController@search');
 Route::post('message', 'MessageController@store');
 Route::post('message/{id}', 'MessageController@copy');
-Route::put('message/{id}', 'MessageController@update');
+Route::patch('message/{id}', 'MessageController@update');
 Route::delete('message/{id}', 'MessageController@delete');

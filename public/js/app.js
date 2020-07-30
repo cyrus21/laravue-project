@@ -2148,6 +2148,113 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   props: ['id'],
@@ -2156,6 +2263,10 @@ __webpack_require__.r(__webpack_exports__);
       tempTitle: '',
       messages: [],
       txtmsg: [],
+      videomsg: [],
+      richMsg: [],
+      errors: [],
+      errorExist: false,
       isEdit: false,
       isDelete: false,
       // video
@@ -2175,20 +2286,23 @@ __webpack_require__.r(__webpack_exports__);
       $('#textModal').modal('show');
     },
     editTextModal: function editTextModal(message) {
+      this.clearFields(message);
       this.editMessage(message);
-
-      if (message.type === 'text') {
-        $('#textModal').modal('show');
-      } else if (message.type === 'video') {
-        $('#videoModal').modal('show');
-      } else {
-        $('#richModal').modal('show');
-      }
+      $('#textModal').modal('show');
     },
-    richModal: function richModal() {
+    createRichModal: function createRichModal() {
       $('#richModal').modal('show');
     },
-    videoModal: function videoModal() {
+    editRichModal: function editRichModal() {
+      $('#richModal').modal('show');
+    },
+    createVideoModal: function createVideoModal(message) {
+      this.clearFields(message);
+      $('#videoModal').modal('show');
+    },
+    editVideoModal: function editVideoModal(message) {
+      this.clearFields(message);
+      this.editVideoMessage(message);
       $('#videoModal').modal('show');
     },
     // get template
@@ -2223,9 +2337,14 @@ __webpack_require__.r(__webpack_exports__);
     },
     // tool for clearing fields
     clearFields: function clearFields(message) {
+      this.videomsg = [];
       this.txtmsg = [];
+      this.errors = [];
+      this.image = null;
+      this.video = null;
       this.isEdit = false;
       this.isDelete = false;
+      this.errorExist = false;
     },
     // add text message
     addMesssage: function addMesssage() {
@@ -2243,7 +2362,9 @@ __webpack_require__.r(__webpack_exports__);
 
         $('.modal').modal('hide');
       })["catch"](function (err) {
-        console.log(err);
+        console.log(err.response.data.errors);
+        _this3.errorExist = true;
+        _this3.errors = err.response.data.errors;
       });
     },
     // setting data for update
@@ -2251,7 +2372,6 @@ __webpack_require__.r(__webpack_exports__);
       this.txtmsg.id = message.id;
       this.txtmsg.title = message.title;
       this.txtmsg.text = message.text;
-      this.txtmsg.type = message.type;
       this.isEdit = true;
       this.isDelete = true;
     },
@@ -2259,17 +2379,28 @@ __webpack_require__.r(__webpack_exports__);
     updateMessage: function updateMessage(id) {
       var _this4 = this;
 
-      axios__WEBPACK_IMPORTED_MODULE_0___default.a.put("/api/message/".concat(id), {
-        title: this.txtmsg.title,
-        text: this.txtmsg.text,
-        type: 'text',
-        template_id: this.id
-      }).then(function (res) {
+      var formData = new FormData(); // set form data
+
+      formData.append('title', this.txtmsg.title);
+      formData.append('text', this.txtmsg.text);
+      formData.append('type', 'text');
+      formData.append('template_id', this.id);
+      formData.append("_method", 'PATCH'); // console.log(this.form)
+
+      var config = {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'enctype': 'multipart/form-data'
+        }
+      };
+      axios__WEBPACK_IMPORTED_MODULE_0___default.a.post("/api/message/".concat(id), formData, config).then(function (res) {
         _this4.getTemplate();
 
         $('.modal').modal('hide');
       })["catch"](function (err) {
-        console.log(err);
+        console.log(err.response.data.errors);
+        _this4.errorExist = true;
+        _this4.errors = err.response.data.errors;
       });
     },
     // delete text message
@@ -2287,12 +2418,131 @@ __webpack_require__.r(__webpack_exports__);
     },
     // video message
     imageSelected: function imageSelected(e) {
+      var _this6 = this;
+
+      console.log(e);
       var file = e.target.files[0];
-      this.imagePreview = URL.createObjectURL(file);
+      var reader = new FileReader();
+      reader.readAsDataURL(file);
+
+      reader.onload = function (e) {
+        _this6.image = e.target.result;
+      }; // this.imagePreview = URL.createObjectURL(file);
+
+
+      this.videomsg.image = file;
     },
     videoSelected: function videoSelected(e) {
+      var _this7 = this;
+
+      console.log(e);
       var file = e.target.files[0];
-      this.videoPreview = URL.createObjectURL(file);
+      var reader = new FileReader();
+      reader.readAsDataURL(file);
+
+      reader.onload = function (e) {
+        _this7.video = e.target.result;
+      }; // this.imagePreview = URL.createObjectURL(file);
+
+
+      this.videomsg.video = file; // const file = e.target.files[0];
+      // this.videoPreview = URL.createObjectURL(file);
+      // this.videomsg.video = file;
+    },
+    // add video message
+    addVideoMesssage: function addVideoMesssage() {
+      var _this8 = this;
+
+      var formData = new FormData(); // set form data
+
+      formData.append('type', 'video');
+      formData.append('template_id', this.id);
+
+      if (this.videomsg.title) {
+        formData.append('title', this.videomsg.title);
+      }
+
+      if (this.videomsg.video) {
+        formData.append('video_url', this.videomsg.video);
+      }
+
+      if (this.videomsg.image) {
+        formData.append('preview_image_url', this.videomsg.image);
+      }
+
+      var config = {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      };
+      axios__WEBPACK_IMPORTED_MODULE_0___default.a.post('/api/message', formData, config).then(function (res) {
+        console.log(res.data);
+
+        _this8.getTemplate();
+
+        $('.modal').modal('hide');
+      })["catch"](function (err) {
+        console.log(err.response.data.errors);
+        _this8.errorExist = true;
+        _this8.errors = err.response.data.errors;
+      });
+    },
+    // setting data for update
+    editVideoMessage: function editVideoMessage(message) {
+      this.videomsg.id = message.id;
+      this.videomsg.title = message.title;
+      this.videomsg.video = message.video_url;
+      this.videomsg.image = message.preview_image_url;
+      this.image = '/storage/files/' + this.videomsg.image;
+      this.video = '/storage/files/' + this.videomsg.video;
+      this.isEdit = true;
+      this.isDelete = true;
+    },
+    // update text message
+    updateVideoMessage: function updateVideoMessage(id) {
+      var _this9 = this;
+
+      var formData = new FormData(); // set form data
+
+      formData.append('type', 'video');
+      formData.append('template_id', this.id);
+      formData.append("_method", 'PATCH');
+
+      if (this.videomsg.title) {
+        formData.append('title', this.videomsg.title);
+      }
+
+      if (this.videomsg.video) {
+        formData.append('video_url', this.videomsg.video);
+      }
+
+      if (this.videomsg.image) {
+        formData.append('preview_image_url', this.videomsg.image);
+      } // console.log(this.form)
+
+
+      var config = {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'enctype': 'multipart/form-data'
+        }
+      };
+      axios__WEBPACK_IMPORTED_MODULE_0___default.a.post("/api/message/".concat(id), formData, config).then(function (res) {
+        console.log(res);
+
+        _this9.getTemplate();
+
+        $('.modal').modal('hide');
+      })["catch"](function (err) {
+        console.log(err.response.data.errors);
+        _this9.errorExist = true;
+        _this9.errors = err.response.data.errors;
+      });
+    },
+    addFind: function addFind() {
+      this.finds.push({
+        value: ''
+      });
     }
   }
 });
@@ -38351,115 +38601,178 @@ var render = function() {
           {
             key: message.id,
             staticClass: "row justify-content-center py-3",
-            attrs: { title: message.title },
-            on: {
-              click: function($event) {
-                return _vm.editTextModal(message)
-              }
-            }
+            attrs: { title: message.title }
           },
           [
-            _c("div", { staticClass: "col-md-4" }, [
-              _c(
-                "div",
-                {
-                  staticClass:
-                    "d-flex flex-column justify-content-center align-items-center border p-4"
-                },
-                [
-                  message.type === "text"
-                    ? _c(
-                        "svg",
-                        {
-                          staticClass: "bi bi-chat mb-4",
-                          attrs: {
-                            width: "24",
-                            height: "24",
-                            viewBox: "0 0 16 16",
-                            fill: "currentColor",
-                            xmlns: "http://www.w3.org/2000/svg"
-                          }
-                        },
-                        [
-                          _c("path", {
+            message.type === "text"
+              ? _c(
+                  "div",
+                  {
+                    staticClass: "col-md-4",
+                    on: {
+                      click: function($event) {
+                        return _vm.editTextModal(message)
+                      }
+                    }
+                  },
+                  [
+                    _c(
+                      "div",
+                      {
+                        staticClass:
+                          "d-flex flex-column justify-content-center align-items-center border p-4"
+                      },
+                      [
+                        _c(
+                          "svg",
+                          {
+                            staticClass: "bi bi-chat mb-4",
                             attrs: {
-                              "fill-rule": "evenodd",
-                              d:
-                                "M2.678 11.894a1 1 0 0 1 .287.801 10.97 10.97 0 0 1-.398 2c1.395-.323 2.247-.697 2.634-.893a1 1 0 0 1 .71-.074A8.06 8.06 0 0 0 8 14c3.996 0 7-2.807 7-6 0-3.192-3.004-6-7-6S1 4.808 1 8c0 1.468.617 2.83 1.678 3.894zm-.493 3.905a21.682 21.682 0 0 1-.713.129c-.2.032-.352-.176-.273-.362a9.68 9.68 0 0 0 .244-.637l.003-.01c.248-.72.45-1.548.524-2.319C.743 11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7-3.582 7-8 7a9.06 9.06 0 0 1-2.347-.306c-.52.263-1.639.742-3.468 1.105z"
+                              width: "24",
+                              height: "24",
+                              viewBox: "0 0 16 16",
+                              fill: "currentColor",
+                              xmlns: "http://www.w3.org/2000/svg"
                             }
-                          })
-                        ]
-                      )
-                    : message.type === "rich"
-                    ? _c(
-                        "svg",
-                        {
-                          staticClass: "bi bi-card-image mx-auto mb-3",
-                          attrs: {
-                            width: "24",
-                            height: "24",
-                            viewBox: "0 0 16 16",
-                            fill: "currentColor",
-                            xmlns: "http://www.w3.org/2000/svg"
-                          }
-                        },
-                        [
-                          _c("path", {
+                          },
+                          [
+                            _c("path", {
+                              attrs: {
+                                "fill-rule": "evenodd",
+                                d:
+                                  "M2.678 11.894a1 1 0 0 1 .287.801 10.97 10.97 0 0 1-.398 2c1.395-.323 2.247-.697 2.634-.893a1 1 0 0 1 .71-.074A8.06 8.06 0 0 0 8 14c3.996 0 7-2.807 7-6 0-3.192-3.004-6-7-6S1 4.808 1 8c0 1.468.617 2.83 1.678 3.894zm-.493 3.905a21.682 21.682 0 0 1-.713.129c-.2.032-.352-.176-.273-.362a9.68 9.68 0 0 0 .244-.637l.003-.01c.248-.72.45-1.548.524-2.319C.743 11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7-3.582 7-8 7a9.06 9.06 0 0 1-2.347-.306c-.52.263-1.639.742-3.468 1.105z"
+                              }
+                            })
+                          ]
+                        ),
+                        _vm._v(" "),
+                        _c("span", [_vm._v(_vm._s(message.title))]),
+                        _vm._v(" "),
+                        _c("small", { staticClass: "text-capitalize" }, [
+                          _vm._v(_vm._s(message.type) + " message")
+                        ])
+                      ]
+                    )
+                  ]
+                )
+              : message.type === "rich"
+              ? _c(
+                  "div",
+                  {
+                    staticClass: "col-md-4",
+                    on: {
+                      click: function($event) {
+                        return _vm.editRichModal(message)
+                      }
+                    }
+                  },
+                  [
+                    _c(
+                      "div",
+                      {
+                        staticClass:
+                          "d-flex flex-column justify-content-center align-items-center border p-4"
+                      },
+                      [
+                        _c(
+                          "svg",
+                          {
+                            staticClass: "bi bi-card-image mx-auto mb-3",
                             attrs: {
-                              "fill-rule": "evenodd",
-                              d:
-                                "M14.5 3h-13a.5.5 0 0 0-.5.5v9a.5.5 0 0 0 .5.5h13a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-13z"
+                              width: "24",
+                              height: "24",
+                              viewBox: "0 0 16 16",
+                              fill: "currentColor",
+                              xmlns: "http://www.w3.org/2000/svg"
                             }
-                          }),
-                          _vm._v(" "),
-                          _c("path", {
+                          },
+                          [
+                            _c("path", {
+                              attrs: {
+                                "fill-rule": "evenodd",
+                                d:
+                                  "M14.5 3h-13a.5.5 0 0 0-.5.5v9a.5.5 0 0 0 .5.5h13a.5.5 0 0 0 .5-.5v-9a.5.5 0 0 0-.5-.5zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-13z"
+                              }
+                            }),
+                            _vm._v(" "),
+                            _c("path", {
+                              attrs: {
+                                d:
+                                  "M10.648 7.646a.5.5 0 0 1 .577-.093L15.002 9.5V13h-14v-1l2.646-2.354a.5.5 0 0 1 .63-.062l2.66 1.773 3.71-3.71z"
+                              }
+                            }),
+                            _vm._v(" "),
+                            _c("path", {
+                              attrs: {
+                                "fill-rule": "evenodd",
+                                d:
+                                  "M4.502 7a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"
+                              }
+                            })
+                          ]
+                        ),
+                        _vm._v(" "),
+                        _c("span", [_vm._v(_vm._s(message.title))]),
+                        _vm._v(" "),
+                        _c("small", { staticClass: "text-capitalize" }, [
+                          _vm._v(_vm._s(message.type) + " message")
+                        ])
+                      ]
+                    )
+                  ]
+                )
+              : message.type === "video"
+              ? _c(
+                  "div",
+                  {
+                    staticClass: "col-md-4",
+                    on: {
+                      click: function($event) {
+                        return _vm.editVideoModal(message)
+                      }
+                    }
+                  },
+                  [
+                    _c(
+                      "div",
+                      {
+                        staticClass:
+                          "d-flex flex-column justify-content-center align-items-center border p-4"
+                      },
+                      [
+                        _c(
+                          "svg",
+                          {
+                            staticClass: "bi bi-film mx-auto mb-3",
                             attrs: {
-                              d:
-                                "M10.648 7.646a.5.5 0 0 1 .577-.093L15.002 9.5V13h-14v-1l2.646-2.354a.5.5 0 0 1 .63-.062l2.66 1.773 3.71-3.71z"
+                              width: "24",
+                              height: "24",
+                              viewBox: "0 0 16 16",
+                              fill: "currentColor",
+                              xmlns: "http://www.w3.org/2000/svg"
                             }
-                          }),
-                          _vm._v(" "),
-                          _c("path", {
-                            attrs: {
-                              "fill-rule": "evenodd",
-                              d: "M4.502 7a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"
-                            }
-                          })
-                        ]
-                      )
-                    : message.type === "video"
-                    ? _c(
-                        "svg",
-                        {
-                          staticClass: "bi bi-film mx-auto mb-3",
-                          attrs: {
-                            width: "24",
-                            height: "24",
-                            viewBox: "0 0 16 16",
-                            fill: "currentColor",
-                            xmlns: "http://www.w3.org/2000/svg"
-                          }
-                        },
-                        [
-                          _c("path", {
-                            attrs: {
-                              "fill-rule": "evenodd",
-                              d:
-                                "M0 1a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H1a1 1 0 0 1-1-1V1zm4 0h8v6H4V1zm8 8H4v6h8V9zM1 1h2v2H1V1zm2 3H1v2h2V4zM1 7h2v2H1V7zm2 3H1v2h2v-2zm-2 3h2v2H1v-2zM15 1h-2v2h2V1zm-2 3h2v2h-2V4zm2 3h-2v2h2V7zm-2 3h2v2h-2v-2zm2 3h-2v2h2v-2z"
-                            }
-                          })
-                        ]
-                      )
-                    : _vm._e(),
-                  _vm._v(" "),
-                  _c("span", [_vm._v(_vm._s(message.title))]),
-                  _vm._v(" "),
-                  _c("small", { staticClass: "text-capitalize" }, [
-                    _vm._v(_vm._s(message.type) + " message")
-                  ])
-                ]
-              )
-            ])
+                          },
+                          [
+                            _c("path", {
+                              attrs: {
+                                "fill-rule": "evenodd",
+                                d:
+                                  "M0 1a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H1a1 1 0 0 1-1-1V1zm4 0h8v6H4V1zm8 8H4v6h8V9zM1 1h2v2H1V1zm2 3H1v2h2V4zM1 7h2v2H1V7zm2 3H1v2h2v-2zm-2 3h2v2H1v-2zM15 1h-2v2h2V1zm-2 3h2v2h-2V4zm2 3h-2v2h2V7zm-2 3h2v2h-2v-2zm2 3h-2v2h2v-2z"
+                              }
+                            })
+                          ]
+                        ),
+                        _vm._v(" "),
+                        _c("span", [_vm._v(_vm._s(message.title))]),
+                        _vm._v(" "),
+                        _c("small", { staticClass: "text-capitalize" }, [
+                          _vm._v(_vm._s(message.type) + " message")
+                        ])
+                      ]
+                    )
+                  ]
+                )
+              : _vm._e()
           ]
         )
       }),
@@ -38555,7 +38868,7 @@ var render = function() {
                         {
                           staticClass:
                             "d-flex flex-column justify-content-center border border-primary rounded-lg p-5 mb-2",
-                          on: { click: _vm.richModal }
+                          on: { click: _vm.createRichModal }
                         },
                         [
                           _c(
@@ -38656,7 +38969,7 @@ var render = function() {
                         {
                           staticClass:
                             "d-flex flex-column justify-content-center border border-primary rounded-lg p-5 mb-2",
-                          on: { click: _vm.videoModal }
+                          on: { click: _vm.createVideoModal }
                         },
                         [
                           _c(
@@ -38782,7 +39095,11 @@ var render = function() {
                             "button",
                             {
                               staticClass: "btn btn-primary",
-                              on: { click: _vm.addMesssage }
+                              on: {
+                                click: function($event) {
+                                  return _vm.addMesssage()
+                                }
+                              }
                             },
                             [_vm._v("Add")]
                           )
@@ -38822,13 +39139,28 @@ var render = function() {
                 ),
                 _vm._v(" "),
                 _c("div", { staticClass: "modal-body px-4" }, [
+                  this.errorExist === true
+                    ? _c(
+                        "div",
+                        {
+                          staticClass: "alert alert-danger",
+                          attrs: { role: "alert" }
+                        },
+                        [
+                          _vm._v(
+                            "\n                         Please check all the required fields.\n                     "
+                          )
+                        ]
+                      )
+                    : _vm._e(),
+                  _vm._v(" "),
                   _vm._m(2),
                   _vm._v(" "),
                   _c("hr", { staticClass: "mb-4" }),
                   _vm._v(" "),
                   _c("form", [
                     _c("div", { staticClass: "form-group" }, [
-                      _c("label", [_vm._v("Title")]),
+                      _vm._m(3),
                       _vm._v(" "),
                       _c("input", {
                         directives: [
@@ -38852,6 +39184,12 @@ var render = function() {
                         }
                       }),
                       _vm._v(" "),
+                      _vm.errors.title
+                        ? _c("div", { staticClass: "text-danger" }, [
+                            _vm._v(_vm._s(_vm.errors.title[0]))
+                          ])
+                        : _vm._e(),
+                      _vm._v(" "),
                       _c("small", { staticClass: "form-text text-muted" }, [
                         _vm._v(
                           "The message title is shown in push notifications and in the user's chat list."
@@ -38860,7 +39198,7 @@ var render = function() {
                     ]),
                     _vm._v(" "),
                     _c("div", { staticClass: "form-group" }, [
-                      _c("label", [_vm._v("Text")]),
+                      _vm._m(4),
                       _vm._v(" "),
                       _c("textarea", {
                         directives: [
@@ -38882,7 +39220,13 @@ var render = function() {
                             _vm.$set(_vm.txtmsg, "text", $event.target.value)
                           }
                         }
-                      })
+                      }),
+                      _vm._v(" "),
+                      _vm.errors.text
+                        ? _c("div", { staticClass: "text-danger" }, [
+                            _vm._v(_vm._s(_vm.errors.text[0]))
+                          ])
+                        : _vm._e()
                     ])
                   ])
                 ])
@@ -38972,22 +39316,13 @@ var render = function() {
                             "button",
                             {
                               staticClass: "btn btn-primary",
-                              on: { click: _vm.addMesssage }
-                            },
-                            [_vm._v("Add")]
-                          )
-                        : this.isEdit === true
-                        ? _c(
-                            "button",
-                            {
-                              staticClass: "btn btn-primary",
                               on: {
                                 click: function($event) {
-                                  return _vm.deleteMessage(_vm.txtmsg.id)
+                                  return _vm.addVideoMesssage()
                                 }
                               }
                             },
-                            [_vm._v("Delete")]
+                            [_vm._v("Add")]
                           )
                         : _vm._e(),
                       _vm._v(" "),
@@ -38998,7 +39333,22 @@ var render = function() {
                               staticClass: "btn btn-primary",
                               on: {
                                 click: function($event) {
-                                  return _vm.updateMessage(_vm.txtmsg.id)
+                                  return _vm.deleteMessage(_vm.videomsg.id)
+                                }
+                              }
+                            },
+                            [_vm._v("Delete")]
+                          )
+                        : _vm._e(),
+                      _vm._v(" "),
+                      this.isEdit === true
+                        ? _c(
+                            "button",
+                            {
+                              staticClass: "btn btn-primary",
+                              on: {
+                                click: function($event) {
+                                  return _vm.updateVideoMessage(_vm.videomsg.id)
                                 }
                               }
                             },
@@ -39010,35 +39360,56 @@ var render = function() {
                 ),
                 _vm._v(" "),
                 _c("div", { staticClass: "modal-body px-4" }, [
-                  _vm._m(3),
+                  this.errorExist === true
+                    ? _c(
+                        "div",
+                        {
+                          staticClass: "alert alert-danger",
+                          attrs: { role: "alert" }
+                        },
+                        [
+                          _vm._v(
+                            "\n                         Please check all the required fields.\n                     "
+                          )
+                        ]
+                      )
+                    : _vm._e(),
+                  _vm._v(" "),
+                  _vm._m(5),
                   _vm._v(" "),
                   _c("hr", { staticClass: "mb-4" }),
                   _vm._v(" "),
                   _c("form", [
                     _c("div", { staticClass: "form-group" }, [
-                      _c("label", [_vm._v("Title")]),
+                      _vm._m(6),
                       _vm._v(" "),
                       _c("input", {
                         directives: [
                           {
                             name: "model",
                             rawName: "v-model",
-                            value: _vm.txtmsg.title,
-                            expression: "txtmsg.title"
+                            value: _vm.videomsg.title,
+                            expression: "videomsg.title"
                           }
                         ],
                         staticClass: "form-control",
                         attrs: { type: "text" },
-                        domProps: { value: _vm.txtmsg.title },
+                        domProps: { value: _vm.videomsg.title },
                         on: {
                           input: function($event) {
                             if ($event.target.composing) {
                               return
                             }
-                            _vm.$set(_vm.txtmsg, "title", $event.target.value)
+                            _vm.$set(_vm.videomsg, "title", $event.target.value)
                           }
                         }
                       }),
+                      _vm._v(" "),
+                      _vm.errors.title
+                        ? _c("div", { staticClass: "text-danger" }, [
+                            _vm._v(_vm._s(_vm.errors.title[0]))
+                          ])
+                        : _vm._e(),
                       _vm._v(" "),
                       _c("small", { staticClass: "form-text text-muted" }, [
                         _vm._v(
@@ -39052,23 +39423,28 @@ var render = function() {
                       _vm._v(" "),
                       _c("div", { staticClass: "row" }, [
                         _c("div", { staticClass: "col-md-6 mb-4" }, [
-                          _c("p", [_vm._v("Video")]),
+                          _vm._m(7),
                           _vm._v(" "),
-                          _c(
-                            "video",
-                            {
-                              staticClass: "w-100",
-                              attrs: { height: "180", controls: "" }
-                            },
-                            [
-                              _c("source", {
-                                attrs: {
-                                  src: _vm.videoPreview,
-                                  type: "video/mp4"
-                                }
-                              })
-                            ]
-                          ),
+                          _c("div", [
+                            _c(
+                              "video",
+                              {
+                                staticClass: "w-100",
+                                attrs: { height: "180", controls: "" }
+                              },
+                              [
+                                _c("source", {
+                                  attrs: { src: _vm.video, type: "video/mp4" }
+                                })
+                              ]
+                            )
+                          ]),
+                          _vm._v(" "),
+                          _vm.errors.video_url
+                            ? _c("div", { staticClass: "text-danger" }, [
+                                _vm._v(_vm._s(_vm.errors.video_url[0]))
+                              ])
+                            : _vm._e(),
                           _vm._v(" "),
                           _c("small", [
                             _vm._v(
@@ -39109,7 +39485,7 @@ var render = function() {
                         ]),
                         _vm._v(" "),
                         _c("div", { staticClass: "col-md-6 mb-4" }, [
-                          _c("p", [_vm._v("Video Image Preview")]),
+                          _vm._m(8),
                           _vm._v(" "),
                           _c(
                             "div",
@@ -39124,10 +39500,16 @@ var render = function() {
                               _c("img", {
                                 staticClass: "w-100",
                                 staticStyle: { height: "176px" },
-                                attrs: { src: _vm.imagePreview }
+                                attrs: { src: _vm.image }
                               })
                             ]
                           ),
+                          _vm._v(" "),
+                          _vm.errors.preview_image_url
+                            ? _c("div", { staticClass: "text-danger" }, [
+                                _vm._v(_vm._s(_vm.errors.preview_image_url[0]))
+                              ])
+                            : _vm._e(),
                           _vm._v(" "),
                           _c("small", [
                             _vm._v(
@@ -39153,10 +39535,7 @@ var render = function() {
                             _c("input", {
                               ref: "imgFile",
                               staticClass: "d-none",
-                              attrs: {
-                                type: "file",
-                                accept: "image/png, image/jpeg"
-                              },
+                              attrs: { type: "file", accept: "image/*" },
                               on: { change: _vm.imageSelected }
                             })
                           ]),
@@ -39169,6 +39548,228 @@ var render = function() {
                             _vm._v("Maximum file Size: 1 MB")
                           ])
                         ])
+                      ])
+                    ])
+                  ])
+                ])
+              ])
+            ]
+          )
+        ]
+      ),
+      _vm._v(" "),
+      _c(
+        "div",
+        {
+          staticClass: "modal fade bd-example-modal-lg",
+          attrs: {
+            id: "richModal",
+            tabindex: "-1",
+            role: "dialog",
+            "aria-labelledby": "exampleModalLabel",
+            "aria-hidden": "true"
+          }
+        },
+        [
+          _c(
+            "div",
+            {
+              staticClass: "modal-dialog modal-lg",
+              attrs: { role: "document" }
+            },
+            [
+              _c("div", { staticClass: "modal-content" }, [
+                _c(
+                  "div",
+                  {
+                    staticClass:
+                      "modal-header d-flex justify-content-between align-items-center py-4"
+                  },
+                  [
+                    _c(
+                      "div",
+                      {
+                        staticClass: "lead",
+                        attrs: {
+                          "data-dismiss": "modal",
+                          "aria-label": "Close"
+                        }
+                      },
+                      [
+                        _c(
+                          "svg",
+                          {
+                            staticClass: "bi bi-arrow-left-short",
+                            attrs: {
+                              width: "1em",
+                              height: "1em",
+                              viewBox: "0 0 16 16",
+                              fill: "currentColor",
+                              xmlns: "http://www.w3.org/2000/svg"
+                            }
+                          },
+                          [
+                            _c("path", {
+                              attrs: {
+                                "fill-rule": "evenodd",
+                                d:
+                                  "M7.854 4.646a.5.5 0 0 1 0 .708L5.207 8l2.647 2.646a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 0 1 .708 0z"
+                              }
+                            }),
+                            _vm._v(" "),
+                            _c("path", {
+                              attrs: {
+                                "fill-rule": "evenodd",
+                                d:
+                                  "M4.5 8a.5.5 0 0 1 .5-.5h6.5a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5z"
+                              }
+                            })
+                          ]
+                        ),
+                        _vm._v(
+                          "\n                         Choose different message type\n                     "
+                        )
+                      ]
+                    ),
+                    _vm._v(" "),
+                    _vm._m(9)
+                  ]
+                ),
+                _vm._v(" "),
+                _c("div", { staticClass: "modal-body px-4" }, [
+                  _vm._m(10),
+                  _vm._v(" "),
+                  _c("hr", { staticClass: "mb-4" }),
+                  _vm._v(" "),
+                  _vm._m(11),
+                  _vm._v(" "),
+                  _c("div", { staticClass: "row text-center mx-4" }, [
+                    _c("div", { staticClass: "col-md-4" }, [
+                      _c("p", [_vm._v("Image 1")]),
+                      _vm._v(" "),
+                      _c(
+                        "div",
+                        {
+                          staticStyle: {
+                            height: "180px",
+                            border: "2px dashed #e2e8f0"
+                          }
+                        },
+                        [
+                          _c("img", {
+                            staticClass: "w-100",
+                            staticStyle: { height: "176px" },
+                            attrs: { src: _vm.imagePreview }
+                          })
+                        ]
+                      ),
+                      _vm._v(" "),
+                      _c("div", { staticClass: "my-3" }, [
+                        _c(
+                          "div",
+                          {
+                            staticClass: "btn rounded-sm bg-light border-dark",
+                            on: {
+                              click: function($event) {
+                                return _vm.$refs.imgFile.click()
+                              }
+                            }
+                          },
+                          [_vm._v("Upload Image")]
+                        ),
+                        _vm._v(" "),
+                        _c("input", {
+                          ref: "imgFile",
+                          staticClass: "d-none",
+                          attrs: { type: "file", accept: "image/*" },
+                          on: { change: _vm.imageSelected }
+                        })
+                      ])
+                    ]),
+                    _vm._v(" "),
+                    _c("div", { staticClass: "col-md-4" }, [
+                      _c("p", [_vm._v("Image 2")]),
+                      _vm._v(" "),
+                      _c(
+                        "div",
+                        {
+                          staticStyle: {
+                            height: "180px",
+                            border: "2px dashed #e2e8f0"
+                          }
+                        },
+                        [
+                          _c("img", {
+                            staticClass: "w-100",
+                            staticStyle: { height: "176px" },
+                            attrs: { src: _vm.imagePreview }
+                          })
+                        ]
+                      ),
+                      _vm._v(" "),
+                      _c("div", { staticClass: "my-3" }, [
+                        _c(
+                          "div",
+                          {
+                            staticClass: "btn rounded-sm bg-light border-dark",
+                            on: {
+                              click: function($event) {
+                                return _vm.$refs.imgFile.click()
+                              }
+                            }
+                          },
+                          [_vm._v("Upload Image")]
+                        ),
+                        _vm._v(" "),
+                        _c("input", {
+                          ref: "imgFile",
+                          staticClass: "d-none",
+                          attrs: { type: "file", accept: "image/*" },
+                          on: { change: _vm.imageSelected }
+                        })
+                      ])
+                    ]),
+                    _vm._v(" "),
+                    _c("div", { staticClass: "col-md-4" }, [
+                      _c("p", [_vm._v("Image 3")]),
+                      _vm._v(" "),
+                      _c(
+                        "div",
+                        {
+                          staticStyle: {
+                            height: "180px",
+                            border: "2px dashed #e2e8f0"
+                          }
+                        },
+                        [
+                          _c("img", {
+                            staticClass: "w-100",
+                            staticStyle: { height: "176px" },
+                            attrs: { src: _vm.imagePreview }
+                          })
+                        ]
+                      ),
+                      _vm._v(" "),
+                      _c("div", { staticClass: "my-3" }, [
+                        _c(
+                          "div",
+                          {
+                            staticClass: "btn rounded-sm bg-light border-dark",
+                            on: {
+                              click: function($event) {
+                                return _vm.$refs.imgFile.click()
+                              }
+                            }
+                          },
+                          [_vm._v("Upload Image")]
+                        ),
+                        _vm._v(" "),
+                        _c("input", {
+                          ref: "imgFile",
+                          staticClass: "d-none",
+                          attrs: { type: "file", accept: "image/*" },
+                          on: { change: _vm.imageSelected }
+                        })
                       ])
                     ])
                   ])
@@ -39234,11 +39835,113 @@ var staticRenderFns = [
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
+    return _c("label", [
+      _vm._v(
+        "\n                                 Title\n                                 "
+      ),
+      _c("span", { staticClass: "text-danger" }, [_vm._v("*")])
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("label", [
+      _vm._v(
+        "\n                                 Text\n                                 "
+      ),
+      _c("span", { staticClass: "text-danger" }, [_vm._v("*")])
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
     return _c("div", { staticClass: "py-2" }, [
       _c("h2", { staticClass: "m-0" }, [_vm._v("Video Message")]),
       _vm._v(" "),
       _c("p", { staticClass: "m-0" }, [
         _vm._v("Use this template to send a video.")
+      ])
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("label", [
+      _vm._v(
+        "\n                                 Title\n                                 "
+      ),
+      _c("span", { staticClass: "text-danger" }, [_vm._v("*")])
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("p", [
+      _vm._v(
+        "\n                                         Video\n                                         "
+      ),
+      _c("span", { staticClass: "text-danger" }, [_vm._v("*")])
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("p", [
+      _vm._v(
+        "\n                                         Video Image Preview\n                                         "
+      ),
+      _c("span", { staticClass: "text-danger" }, [_vm._v("*")])
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", [
+      _c(
+        "a",
+        { staticClass: "btn btn-primary", attrs: { href: "/template/create" } },
+        [_vm._v("Add")]
+      )
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("div", { staticClass: "py-2" }, [
+      _c("h2", { staticClass: "m-0" }, [_vm._v("Rich message")]),
+      _vm._v(" "),
+      _c("p", { staticClass: "m-0" }, [
+        _vm._v(
+          "Use rich messages to send out interactive content featuring images you've selected."
+        )
+      ])
+    ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c("form", [
+      _c("div", { staticClass: "form-group" }, [
+        _c("label", [_vm._v("Title")]),
+        _vm._v(" "),
+        _c("input", {
+          staticClass: "form-control",
+          attrs: { type: "text", id: "title" }
+        }),
+        _vm._v(" "),
+        _c("small", { staticClass: "form-text text-muted" }, [
+          _vm._v(
+            "The message title is shown in push notifications and in the user's chat list."
+          )
+        ])
       ])
     ])
   }
@@ -52511,15 +53214,14 @@ window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 /*!***************************************************!*\
   !*** ./resources/js/components/FormComponent.vue ***!
   \***************************************************/
-/*! no static exports found */
+/*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _FormComponent_vue_vue_type_template_id_b1dd1884___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./FormComponent.vue?vue&type=template&id=b1dd1884& */ "./resources/js/components/FormComponent.vue?vue&type=template&id=b1dd1884&");
 /* harmony import */ var _FormComponent_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./FormComponent.vue?vue&type=script&lang=js& */ "./resources/js/components/FormComponent.vue?vue&type=script&lang=js&");
-/* harmony reexport (unknown) */ for(var __WEBPACK_IMPORT_KEY__ in _FormComponent_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__) if(__WEBPACK_IMPORT_KEY__ !== 'default') (function(key) { __webpack_require__.d(__webpack_exports__, key, function() { return _FormComponent_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__[key]; }) }(__WEBPACK_IMPORT_KEY__));
-/* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
+/* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
 
 
 
@@ -52549,7 +53251,7 @@ component.options.__file = "resources/js/components/FormComponent.vue"
 /*!****************************************************************************!*\
   !*** ./resources/js/components/FormComponent.vue?vue&type=script&lang=js& ***!
   \****************************************************************************/
-/*! no static exports found */
+/*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
