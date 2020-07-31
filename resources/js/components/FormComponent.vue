@@ -338,6 +338,7 @@
                                         <input type="file" ref="richfile" class="images[] d-none" accept="image/*" @change="previewImage(index, $event)">
                                     </div>
                                 </div>
+                                <!-- <div v-if="'errors.images.'+[index]" class="text-danger">Test</div> -->
                             </div>
                         </div>
                         <button class="btn btn-primary add-image" @click.prevent="richNewImage">Add Image</button>
@@ -496,7 +497,8 @@
                 this.richmsg = []
                 this.txtmsg = []
                 this.errors = []
-                this.image = null
+                this.image = '/public/files/placeholder.jpg';
+                this.counter = 1
                 this.video = null
                 this.isEdit = false
                 this.isDelete = false
@@ -620,8 +622,8 @@
                 this.videomsg.title = message.title
                 this.videomsg.video = message.video_url;
                 this.videomsg.image = message.preview_image_url
-                this.image = '/storage/files/'+this.videomsg.image
-                this.video = '/storage/files/'+this.videomsg.video
+                this.image = '/public/files/'+this.videomsg.image
+                this.video = '/public/files/'+this.videomsg.video
                 this.isEdit = true
                 this.isDelete = true
             },
@@ -688,15 +690,16 @@
                     console.log(err.response.data.errors);
                     this.errorExist = true;
                     this.errors = err.response.data.errors;
+                    console.log(errors);
                 })
             },
 
             // setting data for update
-            editRichMessage(message) {
+            editRichMessage(message) {;
                 this.richmsg.id = message.id
                 this.richmsg.title = message.title
-                this.richmsg.image = message.preview_image_url
-                this.image = '/storage/files/'+this.richmsg.image
+                this.richmsg.images = message.images
+                this.image = '/public/files/'+this.richmsg.image
                 this.isEdit = true
                 this.isDelete = true
             },
@@ -707,6 +710,7 @@
                 // set form data
                 formData.append('type', 'rich');
                 formData.append('template_id', this.id);
+                formData.append("_method", 'PATCH');
 
                 if (this.richmsg.title) {
                     formData.append('title',this.richmsg.title);

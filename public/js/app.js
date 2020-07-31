@@ -2261,6 +2261,7 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   props: ['id'],
@@ -2405,7 +2406,8 @@ __webpack_require__.r(__webpack_exports__);
       this.richmsg = [];
       this.txtmsg = [];
       this.errors = [];
-      this.image = null;
+      this.image = '/public/files/placeholder.jpg';
+      this.counter = 1;
       this.video = null;
       this.isEdit = false;
       this.isDelete = false;
@@ -2554,8 +2556,8 @@ __webpack_require__.r(__webpack_exports__);
       this.videomsg.title = message.title;
       this.videomsg.video = message.video_url;
       this.videomsg.image = message.preview_image_url;
-      this.image = '/storage/files/' + this.videomsg.image;
-      this.video = '/storage/files/' + this.videomsg.video;
+      this.image = '/public/files/' + this.videomsg.image;
+      this.video = '/public/files/' + this.videomsg.video;
       this.isEdit = true;
       this.isDelete = true;
     },
@@ -2635,14 +2637,16 @@ __webpack_require__.r(__webpack_exports__);
         console.log(err.response.data.errors);
         _this10.errorExist = true;
         _this10.errors = err.response.data.errors;
+        console.log(errors);
       });
     },
     // setting data for update
     editRichMessage: function editRichMessage(message) {
+      ;
       this.richmsg.id = message.id;
       this.richmsg.title = message.title;
-      this.richmsg.image = message.preview_image_url;
-      this.image = '/storage/files/' + this.richmsg.image;
+      this.richmsg.images = message.images;
+      this.image = '/public/files/' + this.richmsg.image;
       this.isEdit = true;
       this.isDelete = true;
     },
@@ -2654,6 +2658,7 @@ __webpack_require__.r(__webpack_exports__);
 
       formData.append('type', 'rich');
       formData.append('template_id', this.id);
+      formData.append("_method", 'PATCH');
 
       if (this.richmsg.title) {
         formData.append('title', this.richmsg.title);

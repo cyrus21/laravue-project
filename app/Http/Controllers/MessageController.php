@@ -36,10 +36,23 @@ class MessageController extends Controller
                 'title' => 'required',
                 'template_id'=> 'required',
                 'type' => 'required',
-                // 'images.*' => 'required|image|mimes:jpeg,png,jpg|max:1024'
+                'images.*' => 'required|image|mimes:jpeg,png,jpg|max:1024'
             ]);
 
-            return Message::create($request->all());
+            $input = $request->all();
+            $images = array();
+            if($files=$request->file('images')){
+                foreach($files as $file){
+                    $destination_path = 'public/files';
+                    $name=$file->getClientOriginalName();
+                    $file->move($destination_path, $name);
+                    $images[]=$name;
+                }
+            }
+            $images = json_encode($images);
+            $input['images'] = $images;
+
+            return Message::create($input);
         }
         // for video message
         if ($request->type === 'video') {
@@ -58,7 +71,7 @@ class MessageController extends Controller
                 $destination_path = 'public/files';
                 $video = $request->file('video_url');
                 $video_name = $video->getClientOriginalName();
-                $path = $request->file('video_url')->storeAs($destination_path, $video_name);
+                $path = $request->file('video_url')->move($destination_path, $video_name);
 
                 $videoMsg['video_url'] = $video_name;
             }
@@ -67,7 +80,7 @@ class MessageController extends Controller
                 $destination_path = 'public/files';
                 $image = $request->file('preview_image_url');
                 $image_name = $image->getClientOriginalName();
-                $path = $request->file('preview_image_url')->storeAs($destination_path, $image_name);
+                $path = $request->file('preview_image_url')->move($destination_path, $image_name);
     
                 $videoMsg['preview_image_url'] = $image_name;
             }
@@ -77,7 +90,6 @@ class MessageController extends Controller
     }
 
     public function update(Request $request, $id) {
-        // dd($request);
         if ($request->type === 'text') {
             // validate text message
             $request->validate([
@@ -100,11 +112,26 @@ class MessageController extends Controller
                 'title' => 'required',
                 'template_id'=> 'required',
                 'type' => 'required',
-                // 'images.*' => 'required|image|mimes:jpeg,png,jpg|max:1024'
+                'images.*' => 'required|image|mimes:jpeg,png,jpg|max:1024'
             ]);
 
+            $input = $request->all();
+            $images = array();
+            if($files=$request->file('images')){
+                foreach($files as $file){
+                    $destination_path = 'public/files';
+                    $name=$file->getClientOriginalName();
+                    $file->move($destination_path, $name);
+                    $images[]=$name;
+                }
+            }
+            $images = json_encode($images);
+            $input['images'] = $images;
+
             $message = Message::findOrFail($id);
-            $message->update($request->all());
+            $message->update($input);
+            
+            return $message;
         }
 
         if ($request->type === 'video') {
@@ -123,7 +150,7 @@ class MessageController extends Controller
                 $destination_path = 'public/files';
                 $video = $request->file('video_url');
                 $video_name = $video->getClientOriginalName();
-                $path = $request->file('video_url')->storeAs($destination_path, $video_name);
+                $path = $request->file('video_url')->move($destination_path, $video_name);
 
                 $videoMsg['video_url'] = $video_name;
             }
@@ -132,7 +159,7 @@ class MessageController extends Controller
                 $destination_path = 'public/files';
                 $image = $request->file('preview_image_url');
                 $image_name = $image->getClientOriginalName();
-                $path = $request->file('preview_image_url')->storeAs($destination_path, $image_name);
+                $path = $request->file('preview_image_url')->move($destination_path, $image_name);
     
                 $videoMsg['preview_image_url'] = $image_name;
             }
