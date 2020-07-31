@@ -28,6 +28,19 @@ class MessageController extends Controller
 
             return Message::create($request->all());
         }
+
+        // for rich message
+        if ($request->type === 'rich') {
+            // validate text message
+            $request->validate([
+                'title' => 'required',
+                'template_id'=> 'required',
+                'type' => 'required',
+                // 'images.*' => 'required|image|mimes:jpeg,png,jpg|max:1024'
+            ]);
+
+            return Message::create($request->all());
+        }
         // for video message
         if ($request->type === 'video') {
             // validate video message
@@ -79,6 +92,20 @@ class MessageController extends Controller
 
             return $message;
         } 
+
+        // for rich message
+        if ($request->type === 'rich') {
+            // validate text message
+            $request->validate([
+                'title' => 'required',
+                'template_id'=> 'required',
+                'type' => 'required',
+                // 'images.*' => 'required|image|mimes:jpeg,png,jpg|max:1024'
+            ]);
+
+            $message = Message::findOrFail($id);
+            $message->update($request->all());
+        }
 
         if ($request->type === 'video') {
             // validate video message

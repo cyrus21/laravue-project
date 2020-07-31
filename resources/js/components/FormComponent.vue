@@ -287,10 +287,15 @@
                             Choose different message type
                         </div>
                         <div>
-                            <a href="/template/create" class="btn btn-primary">Add</a>
+                            <button v-if="this.isEdit === false" v-on:click="addRichMessage()" class="btn btn-primary">Add</button>
+                            <button v-if="this.isDelete === true" v-on:click="deleteMessage(richmsg.id)" class="btn btn-primary">Delete</button>
+                            <button v-if="this.isEdit === true" v-on:click="updateRichMessage(richmsg.id)" class="btn btn-primary">Update</button>
                         </div>
                     </div>
                     <div class="modal-body px-4">
+                        <div class="alert alert-danger" v-if="this.errorExist === true" role="alert">
+                            Please check all the required fields.
+                        </div>
                         <div class="py-2">
                             <h2 class="m-0">Rich message</h2>
                             <p class="m-0">Use rich messages to send out interactive content featuring images you've selected.</p>
@@ -298,43 +303,48 @@
                         <hr class="mb-4"/>
                         <form>
                             <div class="form-group">
-                                <label>Title</label>
-                                <input type="text" class="form-control" id="title">
+                                <label>
+                                    Title
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" v-model="richmsg.title">
+                                <div v-if="errors.title" class="text-danger">{{errors.title[0]}}</div>
                                 <small class="form-text text-muted">The message title is shown in push notifications and in the user's chat list.</small>
                             </div>
                         </form>
-                        <div class="row text-center mx-4">
-                            <div class="col-md-4">
-                                <p>Image 1</p>
-                                <div class="" style="height:180px;border:2px dashed #e2e8f0;">
-                                    <img class="w-100" :src="imagePreview" style="height:176px;">
+                        <!-- <div class="row"> -->
+                            <div class="d-flex justify-content-center my-5">
+                                <div v-if="this.counter === 1" class="d-flex flex-wrap position-relative" style="width:300px;height:300px">
+                                    <div class="h-100 w-100 text-center justify-content-center align-items-center d-flex">
+                                        <span class="prev bg-light d-flex w-100 h-100 align-items-center justify-content-center" style="background-size:cover;font-size:3rem;">A</span>
+                                    </div>
                                 </div>
-                                <div class="my-3">
-                                    <div @click="$refs.imgFile.click()" class="btn rounded-sm bg-light border-dark">Upload Image</div>
-                                    <input type="file" accept="image/*" class="d-none" ref="imgFile" @change="imageSelected">
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <p>Image 2</p>
-                                <div class="" style="height:180px;border:2px dashed #e2e8f0;">
-                                    <img class="w-100" :src="imagePreview" style="height:176px;">
-                                </div>
-                                <div class="my-3">
-                                    <div @click="$refs.imgFile.click()" class="btn rounded-sm bg-light border-dark">Upload Image</div>
-                                    <input type="file" accept="image/*" class="d-none" ref="imgFile" @change="imageSelected">
+
+                                <div v-else-if="this.counter === 2" class="d-flex flex-wrap position-relative" style="width:300px;height:300px">
+                                    <div class="h-100 w-50 text-center justify-content-center align-items-center d-flex">
+                                        <span class="prev border-right bg-light d-flex w-100 h-100 align-items-center justify-content-center" style="background-size:cover;font-size:3rem;">A</span>
+                                    </div>
+                                    <div class="h-100 w-50 text-center justify-content-center align-items-center d-flex">
+                                        <span class="prev bg-light d-flex w-100 h-100 align-items-center justify-content-center" style="background-size:cover;font-size:3rem;">B</span>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-md-4">
-                                <p>Image 3</p>
-                                <div class="" style="height:180px;border:2px dashed #e2e8f0;">
-                                    <img class="w-100" :src="imagePreview" style="height:176px;">
-                                </div>
-                                <div class="my-3">
-                                    <div @click="$refs.imgFile.click()" class="btn rounded-sm bg-light border-dark">Upload Image</div>
-                                    <input type="file" accept="image/*" class="d-none" ref="imgFile" @change="imageSelected">
+                        <!-- </div> -->
+                        <!-- sample -->
+                        <div class="row">
+                            <div class="col-md-6" v-for="(f, index) in images" :key="index">
+                                <div class="border p-3 align-items-center mb-4">
+                                    <div :class="'images[' + index + ']-preview image-preview'"></div>
+                                    <div class="mt-3">
+                                        <button class="close mt-2" @click.prevent="richRemoveImage(index, $event)">&times;</button>
+                                        <div :id="'index-'+index" @click="$refs.richfile[index].click()" class="btn rounded-sm bg-light border-dark">Upload Image</div>
+                                        <input type="file" ref="richfile" class="images[] d-none" accept="image/*" @change="previewImage(index, $event)">
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                        <button class="btn btn-primary add-image" @click.prevent="richNewImage">Add Image</button>
+                        <!-- sample -->
                     </div>
                 </div>
             </div>
@@ -354,7 +364,7 @@
                 messages: [],
                 txtmsg: [],
                 videomsg: [],
-                richMsg: [],
+                richmsg: [],
                 errors: [],
                 errorExist: false,
                 isEdit: false,
@@ -363,13 +373,72 @@
                 image: null,
                 imagePreview: null,
                 video: null,
-                videoPreview: null
+                videoPreview: null,
+                images: [],
+                maxImages: 2,
+                counter: 1,
+                addImage: 'button.add-image'
             }
         },
         mounted () {
             this.getTemplate()
         },
         methods: {
+            richNewImage: function(e) {
+                var imgCount = this.maxImages || -1;
+                    if (imgCount && this.images.length < imgCount) {
+                        this.images.push('');
+                    }
+                this.checkImages();
+            },
+
+            richRemoveImage: function(index) {
+                this.images.splice(index, 1);
+                this.checkImages();
+            },
+
+            checkImages: function() {
+                var imgCount = this.maxImages || -1;
+                if (imgCount && this.images.length >= imgCount) {
+                    $(this.addImage, this.el).prop('disabled', true);
+                    this.counter = 2;
+                } else {
+                    $(this.addImage, this.el).prop('disabled', false);
+                    this.counter = 1;
+                }
+                console.log(this.counter)
+            },
+
+            previewImage: function(index, e) {
+                var reader = new FileReader(),
+                    file = e.target.files[0];
+
+                reader.addEventListener('load', function() {
+                    $('[class~="images[' + index + ']-preview"]', this.el).html(
+                    '<img id="test-'+index+'" src="' + reader.result + '" class="thumbnail img-responsive w-100" style="height:200px;">'
+                    );
+                }, false);
+
+                if (this.counter == 1) {
+                    reader.addEventListener('load', function() {
+                        document.getElementsByClassName("prev")[0].style.backgroundImage = `url("${reader.result}")`;
+                    }, false);
+                } else if (this.counter == 2) {
+                    reader.addEventListener('load', function() {
+                        document.getElementsByClassName("prev")[1].style.backgroundImage = `url("${reader.result}")`;
+                    }, false);
+                } else if (this.counter == 2) {
+                    reader.addEventListener('load', function() {
+                        document.getElementsByClassName("prev")[2].style.backgroundImage = `url("${reader.result}")`;
+                    }, false);
+                }
+                
+                
+                if (file) {
+                    reader.readAsDataURL(file);
+                    this.richmsg.images = URL.createObjectURL(file);
+                }
+            },
             // modals
             createTextModal(message) {
                 this.clearFields(message)
@@ -381,15 +450,20 @@
                 $('#textModal').modal('show');
             },
 
-            createRichModal() {
+            createRichModal(message) {
+                this.clearFields(message)
+                this.editRichMessage(message)
                 $('#richModal').modal('show');
             },
-            editRichModal() {
+            editRichModal(message) {
+                this.clearFields(message)
+                this.editRichMessage(message)
                 $('#richModal').modal('show');  
             },
 
             createVideoModal(message) {
                 this.clearFields(message)
+                this.editVideoMessage(message)
                 $('#videoModal').modal('show');  
             },
             editVideoModal(message) {
@@ -426,6 +500,7 @@
             // tool for clearing fields
             clearFields(message) {
                 this.videomsg = []
+                this.richmsg = []
                 this.txtmsg = []
                 this.errors = []
                 this.image = null
@@ -499,7 +574,6 @@
                 reader.onload = e => {
                     this.image = e.target.result;
                 }
-                // this.imagePreview = URL.createObjectURL(file);
 
                 this.videomsg.image = file;
             },
@@ -511,15 +585,8 @@
                 reader.onload = e => {
                     this.video = e.target.result;
                 }
-                // this.imagePreview = URL.createObjectURL(file);
 
                 this.videomsg.video = file;
-
-
-                // const file = e.target.files[0];
-                // this.videoPreview = URL.createObjectURL(file);
-
-                // this.videomsg.video = file;
             },
 
             // add video message
@@ -598,9 +665,82 @@
                 })
             },
 
-            addFind: function () {
-                this.finds.push({ value: '' });
-            }
+            // add rich message
+            addRichMessage() {
+                let formData = new FormData();
+                // set form data
+                formData.append('type', 'rich');
+                formData.append('template_id', this.id);
+
+                if (this.richmsg.title) {
+                    formData.append('title',this.richmsg.title);
+                }
+
+                $('[class~="images[]"]', this.el).each(function(i) {
+                    if (i > this.maxImages - 1) {
+                        return; // Max images reached.
+                    }
+
+                    formData.append('images[' + i + ']', this.files[0]);
+                });
+
+                const config = { headers: { 'Content-Type': 'multipart/form-data'}}
+
+                axios.post('/api/message',formData,config
+                ).then((res) => {
+                    console.log(res.data);
+                    this.getTemplate()
+                    $('.modal').modal('hide');
+                }).catch((err) => {
+                    console.log(err.response.data.errors);
+                    this.errorExist = true;
+                    this.errors = err.response.data.errors;
+                })
+            },
+
+            // setting data for update
+            editRichMessage(message) {
+                this.richmsg.id = message.id
+                this.richmsg.title = message.title
+                this.richmsg.image = message.preview_image_url
+                this.image = '/storage/files/'+this.richmsg.image
+                this.isEdit = true
+                this.isDelete = true
+            },
+
+            // update text message
+            updateRichMessage(id) {
+                let formData = new FormData();
+                // set form data
+                formData.append('type', 'rich');
+                formData.append('template_id', this.id);
+
+                if (this.richmsg.title) {
+                    formData.append('title',this.richmsg.title);
+                }
+
+                $('[class~="images[]"]', this.el).each(function(i) {
+                    if (i > this.maxImages - 1) {
+                        return; // Max images reached.
+                    }
+
+                    formData.append('images[' + i + ']', this.files[0]);
+                });
+
+                // console.log(this.form)
+                const config = { headers: { 'Content-Type': 'multipart/form-data', 'enctype' : 'multipart/form-data'}}
+
+                axios.post(`/api/message/${id}`,formData,config
+                ).then((res) => {
+                    console.log(res)
+                    this.getTemplate()
+                    $('.modal').modal('hide');
+                }).catch((err) => {
+                    console.log(err.response.data.errors);
+                    this.errorExist = true;
+                    this.errors = err.response.data.errors;
+                })
+            },
         }
     }
 </script>
