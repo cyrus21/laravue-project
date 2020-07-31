@@ -2255,6 +2255,16 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   props: ['id'],
@@ -2264,7 +2274,7 @@ __webpack_require__.r(__webpack_exports__);
       messages: [],
       txtmsg: [],
       videomsg: [],
-      richMsg: [],
+      richmsg: [],
       errors: [],
       errorExist: false,
       isEdit: false,
@@ -2273,13 +2283,69 @@ __webpack_require__.r(__webpack_exports__);
       image: null,
       imagePreview: null,
       video: null,
-      videoPreview: null
+      videoPreview: null,
+      images: [],
+      maxImages: 2,
+      counter: 1,
+      addImage: 'button.add-image'
     };
   },
   mounted: function mounted() {
     this.getTemplate();
   },
   methods: {
+    richNewImage: function richNewImage(e) {
+      var imgCount = this.maxImages || -1;
+
+      if (imgCount && this.images.length < imgCount) {
+        this.images.push('');
+      }
+
+      this.checkImages();
+    },
+    richRemoveImage: function richRemoveImage(index) {
+      this.images.splice(index, 1);
+      this.checkImages();
+    },
+    checkImages: function checkImages() {
+      var imgCount = this.maxImages || -1;
+
+      if (imgCount && this.images.length >= imgCount) {
+        $(this.addImage, this.el).prop('disabled', true);
+        this.counter = 2;
+      } else {
+        $(this.addImage, this.el).prop('disabled', false);
+        this.counter = 1;
+      }
+
+      console.log(this.counter);
+    },
+    previewImage: function previewImage(index, e) {
+      var reader = new FileReader(),
+          file = e.target.files[0];
+      reader.addEventListener('load', function () {
+        $('[class~="images[' + index + ']-preview"]', this.el).html('<img id="test-' + index + '" src="' + reader.result + '" class="thumbnail img-responsive w-100" style="height:200px;">');
+      }, false);
+
+      if (this.counter == 1) {
+        reader.addEventListener('load', function () {
+          document.getElementsByClassName("prev")[0].style.backgroundImage = "url(\"".concat(reader.result, "\")");
+        }, false);
+      } else if (this.counter == 2) {
+        reader.addEventListener('load', function () {
+          document.getElementsByClassName("prev")[1].style.backgroundImage = "url(\"".concat(reader.result, "\")");
+        }, false);
+      } else if (this.counter == 2) {
+        reader.addEventListener('load', function () {
+          document.getElementsByClassName("prev")[2].style.backgroundImage = "url(\"".concat(reader.result, "\")");
+        }, false);
+      }
+
+      if (file) {
+        reader.readAsDataURL(file);
+        this.richmsg.images = URL.createObjectURL(file);
+      }
+    },
     // modals
     createTextModal: function createTextModal(message) {
       this.clearFields(message);
@@ -2290,14 +2356,19 @@ __webpack_require__.r(__webpack_exports__);
       this.editMessage(message);
       $('#textModal').modal('show');
     },
-    createRichModal: function createRichModal() {
+    createRichModal: function createRichModal(message) {
+      this.clearFields(message);
+      this.editRichMessage(message);
       $('#richModal').modal('show');
     },
-    editRichModal: function editRichModal() {
+    editRichModal: function editRichModal(message) {
+      this.clearFields(message);
+      this.editRichMessage(message);
       $('#richModal').modal('show');
     },
     createVideoModal: function createVideoModal(message) {
       this.clearFields(message);
+      this.editVideoMessage(message);
       $('#videoModal').modal('show');
     },
     editVideoModal: function editVideoModal(message) {
@@ -2338,6 +2409,7 @@ __webpack_require__.r(__webpack_exports__);
     // tool for clearing fields
     clearFields: function clearFields(message) {
       this.videomsg = [];
+      this.richmsg = [];
       this.txtmsg = [];
       this.errors = [];
       this.image = null;
@@ -2427,8 +2499,7 @@ __webpack_require__.r(__webpack_exports__);
 
       reader.onload = function (e) {
         _this6.image = e.target.result;
-      }; // this.imagePreview = URL.createObjectURL(file);
-
+      };
 
       this.videomsg.image = file;
     },
@@ -2442,12 +2513,9 @@ __webpack_require__.r(__webpack_exports__);
 
       reader.onload = function (e) {
         _this7.video = e.target.result;
-      }; // this.imagePreview = URL.createObjectURL(file);
+      };
 
-
-      this.videomsg.video = file; // const file = e.target.files[0];
-      // this.videoPreview = URL.createObjectURL(file);
-      // this.videomsg.video = file;
+      this.videomsg.video = file;
     },
     // add video message
     addVideoMesssage: function addVideoMesssage() {
@@ -2539,9 +2607,89 @@ __webpack_require__.r(__webpack_exports__);
         _this9.errors = err.response.data.errors;
       });
     },
-    addFind: function addFind() {
-      this.finds.push({
-        value: ''
+    // add rich message
+    addRichMessage: function addRichMessage() {
+      var _this10 = this;
+
+      var formData = new FormData(); // set form data
+
+      formData.append('type', 'rich');
+      formData.append('template_id', this.id);
+
+      if (this.richmsg.title) {
+        formData.append('title', this.richmsg.title);
+      }
+
+      $('[class~="images[]"]', this.el).each(function (i) {
+        if (i > this.maxImages - 1) {
+          return; // Max images reached.
+        }
+
+        formData.append('images[' + i + ']', this.files[0]);
+      });
+      var config = {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      };
+      axios__WEBPACK_IMPORTED_MODULE_0___default.a.post('/api/message', formData, config).then(function (res) {
+        console.log(res.data);
+
+        _this10.getTemplate();
+
+        $('.modal').modal('hide');
+      })["catch"](function (err) {
+        console.log(err.response.data.errors);
+        _this10.errorExist = true;
+        _this10.errors = err.response.data.errors;
+      });
+    },
+    // setting data for update
+    editRichMessage: function editRichMessage(message) {
+      this.richmsg.id = message.id;
+      this.richmsg.title = message.title;
+      this.richmsg.image = message.preview_image_url;
+      this.image = '/storage/files/' + this.richmsg.image;
+      this.isEdit = true;
+      this.isDelete = true;
+    },
+    // update text message
+    updateRichMessage: function updateRichMessage(id) {
+      var _this11 = this;
+
+      var formData = new FormData(); // set form data
+
+      formData.append('type', 'rich');
+      formData.append('template_id', this.id);
+
+      if (this.richmsg.title) {
+        formData.append('title', this.richmsg.title);
+      }
+
+      $('[class~="images[]"]', this.el).each(function (i) {
+        if (i > this.maxImages - 1) {
+          return; // Max images reached.
+        }
+
+        formData.append('images[' + i + ']', this.files[0]);
+      }); // console.log(this.form)
+
+      var config = {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'enctype': 'multipart/form-data'
+        }
+      };
+      axios__WEBPACK_IMPORTED_MODULE_0___default.a.post("/api/message/".concat(id), formData, config).then(function (res) {
+        console.log(res);
+
+        _this11.getTemplate();
+
+        $('.modal').modal('hide');
+      })["catch"](function (err) {
+        console.log(err.response.data.errors);
+        _this11.errorExist = true;
+        _this11.errors = err.response.data.errors;
       });
     }
   }
@@ -39632,147 +39780,226 @@ var render = function() {
                       ]
                     ),
                     _vm._v(" "),
-                    _vm._m(9)
+                    _c("div", [
+                      this.isEdit === false
+                        ? _c(
+                            "button",
+                            {
+                              staticClass: "btn btn-primary",
+                              on: {
+                                click: function($event) {
+                                  return _vm.addRichMessage()
+                                }
+                              }
+                            },
+                            [_vm._v("Add")]
+                          )
+                        : _vm._e(),
+                      _vm._v(" "),
+                      this.isDelete === true
+                        ? _c(
+                            "button",
+                            {
+                              staticClass: "btn btn-primary",
+                              on: {
+                                click: function($event) {
+                                  return _vm.deleteMessage(_vm.richmsg.id)
+                                }
+                              }
+                            },
+                            [_vm._v("Delete")]
+                          )
+                        : _vm._e(),
+                      _vm._v(" "),
+                      this.isEdit === true
+                        ? _c(
+                            "button",
+                            {
+                              staticClass: "btn btn-primary",
+                              on: {
+                                click: function($event) {
+                                  return _vm.updateRichMessage(_vm.richmsg.id)
+                                }
+                              }
+                            },
+                            [_vm._v("Update")]
+                          )
+                        : _vm._e()
+                    ])
                   ]
                 ),
                 _vm._v(" "),
                 _c("div", { staticClass: "modal-body px-4" }, [
-                  _vm._m(10),
+                  this.errorExist === true
+                    ? _c(
+                        "div",
+                        {
+                          staticClass: "alert alert-danger",
+                          attrs: { role: "alert" }
+                        },
+                        [
+                          _vm._v(
+                            "\n                         Please check all the required fields.\n                     "
+                          )
+                        ]
+                      )
+                    : _vm._e(),
+                  _vm._v(" "),
+                  _vm._m(9),
                   _vm._v(" "),
                   _c("hr", { staticClass: "mb-4" }),
                   _vm._v(" "),
-                  _vm._m(11),
-                  _vm._v(" "),
-                  _c("div", { staticClass: "row text-center mx-4" }, [
-                    _c("div", { staticClass: "col-md-4" }, [
-                      _c("p", [_vm._v("Image 1")]),
+                  _c("form", [
+                    _c("div", { staticClass: "form-group" }, [
+                      _vm._m(10),
                       _vm._v(" "),
-                      _c(
-                        "div",
-                        {
-                          staticStyle: {
-                            height: "180px",
-                            border: "2px dashed #e2e8f0"
-                          }
-                        },
-                        [
-                          _c("img", {
-                            staticClass: "w-100",
-                            staticStyle: { height: "176px" },
-                            attrs: { src: _vm.imagePreview }
-                          })
-                        ]
-                      ),
-                      _vm._v(" "),
-                      _c("div", { staticClass: "my-3" }, [
-                        _c(
-                          "div",
+                      _c("input", {
+                        directives: [
                           {
-                            staticClass: "btn rounded-sm bg-light border-dark",
-                            on: {
-                              click: function($event) {
-                                return _vm.$refs.imgFile.click()
-                              }
-                            }
-                          },
-                          [_vm._v("Upload Image")]
-                        ),
-                        _vm._v(" "),
-                        _c("input", {
-                          ref: "imgFile",
-                          staticClass: "d-none",
-                          attrs: { type: "file", accept: "image/*" },
-                          on: { change: _vm.imageSelected }
-                        })
-                      ])
-                    ]),
-                    _vm._v(" "),
-                    _c("div", { staticClass: "col-md-4" }, [
-                      _c("p", [_vm._v("Image 2")]),
-                      _vm._v(" "),
-                      _c(
-                        "div",
-                        {
-                          staticStyle: {
-                            height: "180px",
-                            border: "2px dashed #e2e8f0"
+                            name: "model",
+                            rawName: "v-model",
+                            value: _vm.richmsg.title,
+                            expression: "richmsg.title"
                           }
-                        },
-                        [
-                          _c("img", {
-                            staticClass: "w-100",
-                            staticStyle: { height: "176px" },
-                            attrs: { src: _vm.imagePreview }
-                          })
-                        ]
-                      ),
-                      _vm._v(" "),
-                      _c("div", { staticClass: "my-3" }, [
-                        _c(
-                          "div",
-                          {
-                            staticClass: "btn rounded-sm bg-light border-dark",
-                            on: {
-                              click: function($event) {
-                                return _vm.$refs.imgFile.click()
-                              }
+                        ],
+                        staticClass: "form-control",
+                        attrs: { type: "text" },
+                        domProps: { value: _vm.richmsg.title },
+                        on: {
+                          input: function($event) {
+                            if ($event.target.composing) {
+                              return
                             }
-                          },
-                          [_vm._v("Upload Image")]
-                        ),
-                        _vm._v(" "),
-                        _c("input", {
-                          ref: "imgFile",
-                          staticClass: "d-none",
-                          attrs: { type: "file", accept: "image/*" },
-                          on: { change: _vm.imageSelected }
-                        })
-                      ])
-                    ]),
-                    _vm._v(" "),
-                    _c("div", { staticClass: "col-md-4" }, [
-                      _c("p", [_vm._v("Image 3")]),
-                      _vm._v(" "),
-                      _c(
-                        "div",
-                        {
-                          staticStyle: {
-                            height: "180px",
-                            border: "2px dashed #e2e8f0"
+                            _vm.$set(_vm.richmsg, "title", $event.target.value)
                           }
-                        },
-                        [
-                          _c("img", {
-                            staticClass: "w-100",
-                            staticStyle: { height: "176px" },
-                            attrs: { src: _vm.imagePreview }
-                          })
-                        ]
-                      ),
+                        }
+                      }),
                       _vm._v(" "),
-                      _c("div", { staticClass: "my-3" }, [
-                        _c(
-                          "div",
-                          {
-                            staticClass: "btn rounded-sm bg-light border-dark",
-                            on: {
-                              click: function($event) {
-                                return _vm.$refs.imgFile.click()
-                              }
-                            }
-                          },
-                          [_vm._v("Upload Image")]
-                        ),
-                        _vm._v(" "),
-                        _c("input", {
-                          ref: "imgFile",
-                          staticClass: "d-none",
-                          attrs: { type: "file", accept: "image/*" },
-                          on: { change: _vm.imageSelected }
-                        })
+                      _vm.errors.title
+                        ? _c("div", { staticClass: "text-danger" }, [
+                            _vm._v(_vm._s(_vm.errors.title[0]))
+                          ])
+                        : _vm._e(),
+                      _vm._v(" "),
+                      _c("small", { staticClass: "form-text text-muted" }, [
+                        _vm._v(
+                          "The message title is shown in push notifications and in the user's chat list."
+                        )
                       ])
                     ])
-                  ])
+                  ]),
+                  _vm._v(" "),
+                  _c(
+                    "div",
+                    { staticClass: "d-flex justify-content-center my-5" },
+                    [
+                      this.counter === 1
+                        ? _c(
+                            "div",
+                            {
+                              staticClass: "d-flex flex-wrap position-relative",
+                              staticStyle: { width: "300px", height: "300px" }
+                            },
+                            [_vm._m(11)]
+                          )
+                        : this.counter === 2
+                        ? _c(
+                            "div",
+                            {
+                              staticClass: "d-flex flex-wrap position-relative",
+                              staticStyle: { width: "300px", height: "300px" }
+                            },
+                            [_vm._m(12), _vm._v(" "), _vm._m(13)]
+                          )
+                        : _vm._e()
+                    ]
+                  ),
+                  _vm._v(" "),
+                  _c(
+                    "div",
+                    { staticClass: "row" },
+                    _vm._l(_vm.images, function(f, index) {
+                      return _c(
+                        "div",
+                        { key: index, staticClass: "col-md-6" },
+                        [
+                          _c(
+                            "div",
+                            {
+                              staticClass: "border p-3 align-items-center mb-4"
+                            },
+                            [
+                              _c("div", {
+                                class:
+                                  "images[" + index + "]-preview image-preview"
+                              }),
+                              _vm._v(" "),
+                              _c("div", { staticClass: "mt-3" }, [
+                                _c(
+                                  "button",
+                                  {
+                                    staticClass: "close mt-2",
+                                    on: {
+                                      click: function($event) {
+                                        $event.preventDefault()
+                                        return _vm.richRemoveImage(
+                                          index,
+                                          $event
+                                        )
+                                      }
+                                    }
+                                  },
+                                  [_vm._v("×")]
+                                ),
+                                _vm._v(" "),
+                                _c(
+                                  "div",
+                                  {
+                                    staticClass:
+                                      "btn rounded-sm bg-light border-dark",
+                                    attrs: { id: "index-" + index },
+                                    on: {
+                                      click: function($event) {
+                                        return _vm.$refs.richfile[index].click()
+                                      }
+                                    }
+                                  },
+                                  [_vm._v("Upload Image")]
+                                ),
+                                _vm._v(" "),
+                                _c("input", {
+                                  ref: "richfile",
+                                  refInFor: true,
+                                  staticClass: "images[] d-none",
+                                  attrs: { type: "file", accept: "image/*" },
+                                  on: {
+                                    change: function($event) {
+                                      return _vm.previewImage(index, $event)
+                                    }
+                                  }
+                                })
+                              ])
+                            ]
+                          )
+                        ]
+                      )
+                    }),
+                    0
+                  ),
+                  _vm._v(" "),
+                  _c(
+                    "button",
+                    {
+                      staticClass: "btn btn-primary add-image",
+                      on: {
+                        click: function($event) {
+                          $event.preventDefault()
+                          return _vm.richNewImage($event)
+                        }
+                      }
+                    },
+                    [_vm._v("Add Image")]
+                  )
                 ])
               ])
             ]
@@ -39902,18 +40129,6 @@ var staticRenderFns = [
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
-    return _c("div", [
-      _c(
-        "a",
-        { staticClass: "btn btn-primary", attrs: { href: "/template/create" } },
-        [_vm._v("Add")]
-      )
-    ])
-  },
-  function() {
-    var _vm = this
-    var _h = _vm.$createElement
-    var _c = _vm._self._c || _h
     return _c("div", { staticClass: "py-2" }, [
       _c("h2", { staticClass: "m-0" }, [_vm._v("Rich message")]),
       _vm._v(" "),
@@ -39928,22 +40143,81 @@ var staticRenderFns = [
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
-    return _c("form", [
-      _c("div", { staticClass: "form-group" }, [
-        _c("label", [_vm._v("Title")]),
-        _vm._v(" "),
-        _c("input", {
-          staticClass: "form-control",
-          attrs: { type: "text", id: "title" }
-        }),
-        _vm._v(" "),
-        _c("small", { staticClass: "form-text text-muted" }, [
-          _vm._v(
-            "The message title is shown in push notifications and in the user's chat list."
-          )
-        ])
-      ])
+    return _c("label", [
+      _vm._v(
+        "\n                                 Title\n                                 "
+      ),
+      _c("span", { staticClass: "text-danger" }, [_vm._v("*")])
     ])
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c(
+      "div",
+      {
+        staticClass:
+          "h-100 w-100 text-center justify-content-center align-items-center d-flex"
+      },
+      [
+        _c(
+          "span",
+          {
+            staticClass:
+              "prev bg-light d-flex w-100 h-100 align-items-center justify-content-center",
+            staticStyle: { "background-size": "cover", "font-size": "3rem" }
+          },
+          [_vm._v("A")]
+        )
+      ]
+    )
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c(
+      "div",
+      {
+        staticClass:
+          "h-100 w-50 text-center justify-content-center align-items-center d-flex"
+      },
+      [
+        _c(
+          "span",
+          {
+            staticClass:
+              "prev border-right bg-light d-flex w-100 h-100 align-items-center justify-content-center",
+            staticStyle: { "background-size": "cover", "font-size": "3rem" }
+          },
+          [_vm._v("A")]
+        )
+      ]
+    )
+  },
+  function() {
+    var _vm = this
+    var _h = _vm.$createElement
+    var _c = _vm._self._c || _h
+    return _c(
+      "div",
+      {
+        staticClass:
+          "h-100 w-50 text-center justify-content-center align-items-center d-flex"
+      },
+      [
+        _c(
+          "span",
+          {
+            staticClass:
+              "prev bg-light d-flex w-100 h-100 align-items-center justify-content-center",
+            staticStyle: { "background-size": "cover", "font-size": "3rem" }
+          },
+          [_vm._v("B")]
+        )
+      ]
+    )
   }
 ]
 render._withStripped = true
