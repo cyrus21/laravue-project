@@ -312,7 +312,6 @@
                                 <small class="form-text text-muted">The message title is shown in push notifications and in the user's chat list.</small>
                             </div>
                         </form>
-                        <!-- <div class="row"> -->
                             <div class="d-flex justify-content-center my-5">
                                 <div v-if="this.counter === 1" class="d-flex flex-wrap position-relative" style="width:300px;height:300px">
                                     <div class="h-100 w-100 text-center justify-content-center align-items-center d-flex">
@@ -329,8 +328,6 @@
                                     </div>
                                 </div>
                             </div>
-                        <!-- </div> -->
-                        <!-- sample -->
                         <div class="row">
                             <div class="col-md-6" v-for="(f, index) in images" :key="index">
                                 <div class="border p-3 align-items-center mb-4">
@@ -344,7 +341,6 @@
                             </div>
                         </div>
                         <button class="btn btn-primary add-image" @click.prevent="richNewImage">Add Image</button>
-                        <!-- sample -->
                     </div>
                 </div>
             </div>
@@ -423,7 +419,6 @@
                     reader.addEventListener('load', function() {
                         document.getElementsByClassName("prev")[0].style.backgroundImage = `url("${reader.result}")`;
                     }, false);
-                } else if (this.counter == 2) {
                     reader.addEventListener('load', function() {
                         document.getElementsByClassName("prev")[1].style.backgroundImage = `url("${reader.result}")`;
                     }, false);
@@ -452,7 +447,6 @@
 
             createRichModal(message) {
                 this.clearFields(message)
-                this.editRichMessage(message)
                 $('#richModal').modal('show');
             },
             editRichModal(message) {
@@ -463,7 +457,6 @@
 
             createVideoModal(message) {
                 this.clearFields(message)
-                this.editVideoMessage(message)
                 $('#videoModal').modal('show');  
             },
             editVideoModal(message) {

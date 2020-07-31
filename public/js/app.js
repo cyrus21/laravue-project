@@ -2261,10 +2261,6 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
-//
-//
-//
-//
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   props: ['id'],
@@ -2331,7 +2327,6 @@ __webpack_require__.r(__webpack_exports__);
         reader.addEventListener('load', function () {
           document.getElementsByClassName("prev")[0].style.backgroundImage = "url(\"".concat(reader.result, "\")");
         }, false);
-      } else if (this.counter == 2) {
         reader.addEventListener('load', function () {
           document.getElementsByClassName("prev")[1].style.backgroundImage = "url(\"".concat(reader.result, "\")");
         }, false);
@@ -2358,7 +2353,6 @@ __webpack_require__.r(__webpack_exports__);
     },
     createRichModal: function createRichModal(message) {
       this.clearFields(message);
-      this.editRichMessage(message);
       $('#richModal').modal('show');
     },
     editRichModal: function editRichModal(message) {
@@ -2368,7 +2362,6 @@ __webpack_require__.r(__webpack_exports__);
     },
     createVideoModal: function createVideoModal(message) {
       this.clearFields(message);
-      this.editVideoMessage(message);
       $('#videoModal').modal('show');
     },
     editVideoModal: function editVideoModal(message) {
